@@ -1,0 +1,104 @@
+# Mecha
+
+Interactive lessons on how cars work, from engines to transmissions to electronics. Each lesson is a 3D mechanism you can play, pause, scrub and take apart, with the explanation shown as short subtitles under the moving parts.
+
+![The four-stroke engine lesson during the power stroke](docs/screenshot.png)
+
+## Features
+
+- **Procedural 3D mechanisms.** Parts are built from primitives and moved by real kinematics (the slider-crank equation, valve lift curves), not baked animations.
+- **One value drives everything.** A single driving angle feeds the 3D scene, the subtitles, the timeline and the cycle chart, so they can't drift out of sync.
+- **Subtitle-style lessons.** One or two sentences per step on stage; the full explanation, cycle chart and notes live in an "All steps" sheet.
+- **Accessible by default.** Keyboard-operable timeline, a native `<dialog>` sheet, reduced-motion support (no autoplay, no slide animations), and WCAG AA text contrast.
+- **Fast static pages.** Every lesson is prerendered to HTML; three.js loads only when the 3D view comes into view.
+
+## Tech stack
+
+| Area      | Choice                                                                                   |
+| --------- | ---------------------------------------------------------------------------------------- |
+| Framework | [SvelteKit](https://svelte.dev/docs/kit) (Svelte 5, TypeScript), static adapter          |
+| Content   | [mdsvex](https://mdsvex.pngwn.io/): Markdown lessons with embedded Svelte components     |
+| 3D        | [three.js](https://threejs.org/) via [Threlte](https://threlte.xyz/)                     |
+| Font      | Schibsted Grotesk, self-hosted via Fontsource                                            |
+| Tests     | [Vitest](https://vitest.dev/) (unit) and [Playwright](https://playwright.dev/) (browser) |
+
+## Getting started
+
+Developed with Node.js 26 and npm.
+
+```sh
+git clone https://github.com/1andxh/mecha.git
+cd mecha
+npm install
+npm run dev
+```
+
+Then open the URL Vite prints and go to `/learn/engine/four-stroke-cycle`.
+
+## Scripts
+
+| Command             | What it does                                               |
+| ------------------- | ---------------------------------------------------------- |
+| `npm run dev`       | Start the dev server                                       |
+| `npm run build`     | Prerender the site to `build/`                             |
+| `npm run preview`   | Serve the production build locally                         |
+| `npm run check`     | Type-check Svelte and TypeScript                           |
+| `npm run lint`      | Check formatting with Prettier (`npm run format` fixes it) |
+| `npm run test:unit` | Run unit tests in watch mode                               |
+| `npm run test:e2e`  | Install Playwright browsers, then run the browser tests    |
+| `npm test`          | Run the unit tests once, then the browser tests            |
+
+## Project structure
+
+```
+src/
+  content/articles/<category>/<slug>.md   Lessons (frontmatter + Markdown)
+  lib/
+    animation/        Playback state (CycleState) and the per-frame advance logic
+    components/       Lesson stage: Lesson, Subtitle, Timeline, Step, LazyCanvas
+    content/          Article index and step helpers
+    mechanisms/       One folder per mechanism: kinematics, 3D scene, 2D chart
+    server/           Build-time-only code (article listings)
+  routes/             Home page and /learn/[category]/[slug]
+  app.css             Design tokens
+```
+
+## How a lesson works
+
+A lesson has one driving value, such as the crank angle from 0 to 720° for a four-stroke cycle. Only `CycleState` changes it (when playing, scrubbing or jumping to a step); everything else reads it. The kinematics are pure functions of that value, which is what the unit tests cover.
+
+### Writing a lesson
+
+Short subtitles go in the frontmatter. `*word*` marks the one highlighted word:
+
+```yaml
+steps:
+  - title: Power
+    from: 360
+    to: 540
+    subtitle: 'The spark fires, and the burning gas drives the *piston* down.'
+```
+
+The long explanation for each step goes in the body, matched by number:
+
+```svelte
+<Lesson {title} {steps} period={720} visual={FourStrokeVisual}>
+	<Step n={3}>The mixture burns in a fraction of a millisecond...</Step>
+</Lesson>
+```
+
+Step ranges are half-open (`[from, to)`), so a boundary angle belongs to the next step.
+
+## Testing
+
+```sh
+npm test
+```
+
+Browser tests run in Chromium, Firefox, WebKit (Safari's engine) and an emulated iPhone 15. They wait for the page to hydrate before interacting, because the prerendered HTML is visible before its controls are live.
+
+## Roadmap
+
+- More lessons: gear ratios, the differential, ignition and charging circuits
+- Realistic valve timing (overlap) for the engine lesson
+- Deployment as a static site
