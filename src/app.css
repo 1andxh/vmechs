@@ -1,0 +1,65 @@
+/*
+ * Design tokens: direction "D2 · Subtitles".
+ * A dark stage with one warm spotlight. Text is warm white, and a single
+ * amber highlight marks the one thing that matters right now.
+ * Dark-only by design; there is no light theme.
+ */
+:root {
+	/* Stage */
+	--bg: #0a0a0b;
+	--spot: rgba(255, 240, 220, 0.11); /* the spotlight on the engine */
+	--surface: #141415; /* sheets and panels that slide over the stage */
+	--surface-2: #1c1c1e;
+	--line: #2c2b29;
+
+	/* Text: all pass WCAG AA on --bg */
+	--ink: #f4f1ec; /* subtitles, headings */
+	--ink-2: #bdb9b2; /* secondary */
+	--ink-3: #8c8a86; /* tertiary: step counter, labels */
+
+	/* The one highlight colour: the key word in a subtitle, the active part */
+	--accent: #ffb46e;
+	--hot: #ffb46e; /* combustion, centre */
+	--hot-deep: #e0552e; /* combustion, edge */
+
+	/* Stroke colours, used only in the detail sheet's cycle chart */
+	--intake: #6fa8dc;
+	--compression: #e8c46a;
+	--power: #ff8a4c;
+	--exhaust: #a495d6;
+
+	--radius: 12px;
+	--font:
+		'Schibsted Grotesk Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+	color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--ink);
+	font-family: var(--font);
+	line-height: 1.6;
+	-webkit-font-smoothing: antialiased;
+}
+
+a {
+	color: var(--ink);
+}
+
+a:hover {
+	color: var(--accent);
+}
+
+:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
