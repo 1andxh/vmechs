@@ -99,6 +99,8 @@ Browser tests run in Chromium, Firefox, WebKit (Safari's engine) and an emulated
 
 ## Roadmap
 
-- More lessons: gear ratios, the differential, ignition and charging circuits
-- Realistic valve timing (overlap) for the engine lesson
-- Deployment as a static site
+- **Now:** ship it (deploy, CI), then the site around the lesson: a homepage car map, system pages, a glossary and search.
+- **Next:** a reusable mechanism kit and about ten powertrain lessons, then features for every reader: depth layers, "Break it" mode, warning lights and a symptom finder.
+- **Later:** a FastAPI backend (accounts, synced progress, corrections), embeds, offline and low-end-device support.
+
+See the full plan in [docs/ROADMAP.md](docs/ROADMAP.md).
