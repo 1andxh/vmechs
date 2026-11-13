@@ -7,7 +7,7 @@
 :root {
 	/* Stage */
 	--bg: #0a0a0b;
-	--spot: rgba(255, 240, 220, 0.11); /* the spotlight on the engine */
+	--spot: rgba(255, 240, 220, 0.045); /* faint warmth behind the engine; no visible edge */
 	--surface: #141415; /* sheets and panels that slide over the stage */
 	--surface-2: #1c1c1e;
 	--line: #2c2b29;

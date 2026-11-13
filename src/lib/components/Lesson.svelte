@@ -118,7 +118,7 @@
 		grid-template-columns: minmax(0, 1fr);
 		grid-template-rows: auto minmax(320px, 1fr) auto auto;
 		background:
-			radial-gradient(ellipse 34% 58% at 50% 36%, var(--spot), rgba(255, 240, 220, 0) 80%),
+			radial-gradient(ellipse 60% 80% at 50% 38%, var(--spot), rgba(255, 240, 220, 0) 100%),
 			var(--bg);
 	}
 
@@ -290,7 +290,7 @@
 	@media (max-width: 640px) {
 		.lesson {
 			background:
-				radial-gradient(ellipse 70% 45% at 50% 34%, var(--spot), rgba(255, 240, 220, 0) 80%),
+				radial-gradient(ellipse 100% 60% at 50% 36%, var(--spot), rgba(255, 240, 220, 0) 100%),
 				var(--bg);
 		}
 		.bar {
