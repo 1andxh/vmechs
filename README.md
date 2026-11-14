@@ -27,8 +27,8 @@ Interactive lessons on how cars work, from engines to transmissions to electroni
 Developed with Node.js 26 and npm.
 
 ```sh
-git clone https://github.com/1andxh/mecha.git
-cd mecha
+git clone https://github.com/1andxh/vmechs.git
+cd vmechs
 npm install
 npm run dev
 ```
