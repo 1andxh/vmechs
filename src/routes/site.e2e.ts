@@ -30,11 +30,27 @@ test('home lists the four-stroke article and links to it', async ({ page }) => {
 	await expect(page.getByRole('heading', { level: 1 })).toHaveText(/four-stroke/i);
 });
 
-test('article mounts the 3D canvas without console errors', async ({ page }) => {
+// Covers both paths: with WebGL the 3D canvas must mount; without it (e.g.
+// headless Firefox on a GPU-less CI machine) the fallback message must show.
+// Which path ran is recorded as an annotation, so lost WebGL coverage is visible.
+test('article mounts the 3D view, or its fallback, without console errors', async ({ page }) => {
 	const errors = trackErrors(page);
 	await openArticle(page);
-	await expect(page.locator('.lazy[data-status="ready"] canvas')).toBeVisible({ timeout: 15_000 });
-	await page.waitForTimeout(500); // let a few frames render
+	const hasWebGL = await page.evaluate(() => {
+		const c = document.createElement('canvas');
+		return !!(c.getContext('webgl2') ?? c.getContext('webgl'));
+	});
+	test
+		.info()
+		.annotations.push({ type: 'webgl', description: hasWebGL ? 'available' : 'unavailable' });
+	if (hasWebGL) {
+		await expect(page.locator('.lazy[data-status="ready"] canvas')).toBeVisible({
+			timeout: 15_000
+		});
+		await page.waitForTimeout(500); // let a few frames render
+	} else {
+		await expect(page.getByText('3D view unavailable in this browser.')).toBeVisible();
+	}
 	expect(errors).toEqual([]);
 });
 
