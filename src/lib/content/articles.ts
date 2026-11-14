@@ -1,12 +1,8 @@
 import type { Component } from 'svelte';
+import type { LessonMeta } from './lesson-meta.ts';
 
-export interface ArticleMeta {
-	title: string;
-	category: string;
-	summary: string;
-	difficulty: string;
-	order: number;
-}
+/** An article's frontmatter: one definition, shared with the content standard. */
+export type ArticleMeta = LessonMeta;
 
 export interface ArticleModule {
 	default: Component;

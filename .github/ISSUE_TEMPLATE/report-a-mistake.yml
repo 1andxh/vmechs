@@ -1,0 +1,31 @@
+name: Report a mistake
+description: Something in a lesson is wrong, misleading or unclear.
+title: 'Mistake in a lesson'
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping keep vmechs accurate. Every report is read, and corrections are credited in the commit history.
+  - type: input
+    id: lesson
+    attributes:
+      label: Lesson
+      description: The address of the lesson. It's filled in for you when you use the link in the lesson.
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What's wrong?
+      description: Quote the sentence, or describe the moment in the animation (for example "at the start of the power stroke, the exhaust valve…").
+    validations:
+      required: true
+  - type: textarea
+    id: correction
+    attributes:
+      label: What should it say?
+  - type: input
+    id: source
+    attributes:
+      label: Source (optional)
+      description: A book, service manual or link that supports the correction.

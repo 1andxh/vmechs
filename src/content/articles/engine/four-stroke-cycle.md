@@ -4,6 +4,20 @@ category: engine
 summary: Intake, compression, power, exhaust. Watch the piston, valves and crankshaft move through the cycle that powers almost every petrol car.
 difficulty: Beginner
 order: 1
+reviewed: '2026-11-14'
+sources:
+  - title: Internal Combustion Engine Fundamentals
+    author: John B. Heywood
+    publisher: McGraw-Hill
+    year: 2018
+    note: The four-stroke cycle, and the crank–slider geometry behind the piston motion.
+  - title: Bosch Automotive Handbook
+    author: Robert Bosch GmbH
+    note: How petrol engines operate, including valve timing and ignition.
+simplifications:
+  - Valve timing is idealised. Each valve opens and closes exactly at the top or bottom of the stroke; real engines open them early and close them late, with a brief overlap.
+  - The spark always fires at the same point just before the top of the compression stroke. Real engines move that point with engine speed and load.
+  - It's a single cylinder shown cut in half, and the gas colours show what the gas is doing, not its real colour or temperature.
 steps:
   - title: Intake
     from: 0
@@ -30,7 +44,7 @@ steps:
 	import CycleChart from '#lib/mechanisms/engine/CycleChart.svelte';
 </script>
 
-<Lesson {title} {steps} period={720} visual={FourStrokeVisual}>
+<Lesson meta={metadata} period={720} visual={FourStrokeVisual}>
 
 Almost every petrol car engine does the same thing over and over, thousands of times a minute: it
 pulls in air and fuel, squeezes it, burns it, and pushes the leftovers out. Engineers call those four

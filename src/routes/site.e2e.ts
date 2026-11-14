@@ -125,6 +125,23 @@ test.describe('with reduced motion', () => {
 		await expect(page.getByRole('dialog')).toBeHidden();
 		await expect(slider(page)).toHaveValue('630');
 	});
+
+	test('the sheet ends with sources, the review date and a prefilled "Report a mistake" link', async ({
+		page
+	}) => {
+		await openArticle(page);
+		await page.getByRole('button', { name: 'All 4 steps' }).click();
+		const accuracy = page.getByRole('region', { name: 'Sources and accuracy' });
+		await expect(accuracy).toContainText('Last reviewed');
+		await expect(accuracy).toContainText('Internal Combustion Engine Fundamentals');
+		const href = await accuracy
+			.getByRole('link', { name: 'Report a mistake' })
+			.getAttribute('href');
+		const url = new URL(href!);
+		expect(url.pathname).toBe('/1andxh/vmechs/issues/new');
+		expect(url.searchParams.get('template')).toBe('report-a-mistake.yml');
+		expect(url.searchParams.get('lesson')).toMatch(/\/learn\/engine\/four-stroke-cycle$/);
+	});
 });
 
 test('clicking a step plays its range, then stops inside it', async ({ page }) => {

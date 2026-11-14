@@ -8,32 +8,44 @@
 -->
 <script lang="ts">
 	import { onMount, type Component, type Snippet } from 'svelte';
+	import { page } from '$app/state';
 	import { CycleState, setCycle } from '../animation/cycle.svelte.ts';
-	import type { StepMeta } from '../content/steps.ts';
+	import type { LessonMeta } from '../content/lesson-meta.ts';
+	import { reportMistakeUrl } from '../site.ts';
 	import { setLessonSteps, setSheet } from './lesson-context.ts';
 	import Subtitle from './Subtitle.svelte';
 	import Timeline from './Timeline.svelte';
 
 	let {
-		title,
+		meta,
 		period,
 		visual: Visual,
-		steps,
 		children
 	}: {
-		title: string;
+		/** The lesson's frontmatter (mdsvex exposes it as `metadata`). */
+		meta: LessonMeta;
 		period: number;
 		visual: Component;
-		steps: StepMeta[];
 		children: Snippet;
 	} = $props();
 
-	// period and steps are fixed for the life of a lesson, so reading them once is intended.
+	// A lesson's frontmatter and period are fixed for its lifetime, so reading them once is intended.
+	// svelte-ignore state_referenced_locally
+	const { title, steps } = meta;
 	// svelte-ignore state_referenced_locally
 	const cycle = new CycleState(period);
 	setCycle(cycle);
-	// svelte-ignore state_referenced_locally
 	setLessonSteps(steps);
+
+	const reviewed = $derived(
+		new Date(`${meta.reviewed}T00:00:00Z`).toLocaleDateString('en-GB', {
+			day: 'numeric',
+			month: 'long',
+			year: 'numeric',
+			timeZone: 'UTC'
+		})
+	);
+	const reportUrl = $derived(reportMistakeUrl(page.url.pathname, title));
 
 	// The "All steps" sheet is a native <dialog>: showModal() gives focus
 	// trapping, Esc to close, an inert background and focus return for free.
@@ -105,6 +117,37 @@
 		</header>
 		<div class="sheet-body">
 			{@render children()}
+
+			<section class="accuracy" aria-labelledby="accuracy-title">
+				<h2 id="accuracy-title">Sources and accuracy</h2>
+				<p class="reviewed">Last reviewed {reviewed}.</p>
+
+				{#if meta.simplifications.length}
+					<h3>What this lesson simplifies</h3>
+					<ul>
+						{#each meta.simplifications as s (s)}<li>{s}</li>{/each}
+					</ul>
+				{/if}
+
+				<h3>Sources</h3>
+				<ul class="sources">
+					{#each meta.sources as src (src.title)}
+						<li>
+							{#if src.url}<a href={src.url} rel="noopener">{src.title}</a>{:else}<cite
+									>{src.title}</cite
+								>{/if}{#if src.author}, {src.author}{/if}{#if src.publisher}, {src.publisher}{/if}{#if src.year},
+								{src.year}{/if}.
+							{#if src.note}<span class="note">{src.note}</span>{/if}
+						</li>
+					{/each}
+				</ul>
+
+				<p class="report">
+					Spotted something wrong? <a href={reportUrl} target="_blank" rel="noopener"
+						>Report a mistake</a
+					> (opens GitHub).
+				</p>
+			</section>
 		</div>
 	</div>
 </dialog>
@@ -285,6 +328,46 @@
 	.sheet-body :global(strong) {
 		color: var(--ink);
 		font-weight: 600;
+	}
+
+	/* ---- Sources and accuracy (end of the sheet) ---- */
+	.accuracy {
+		margin-top: 48px;
+		padding-top: 8px;
+		border-top: 1px solid var(--line);
+		font-size: 15px;
+		line-height: 1.6;
+	}
+	.accuracy h3 {
+		margin: 24px 0 8px;
+		font-size: 15px;
+		font-weight: 600;
+		color: var(--ink);
+	}
+	.accuracy ul {
+		margin: 0;
+		padding-left: 18px;
+	}
+	.accuracy li + li {
+		margin-top: 8px;
+	}
+	.reviewed {
+		margin: 0;
+		color: var(--ink-3);
+	}
+	.sources cite {
+		font-style: italic;
+		color: var(--ink);
+	}
+	.note {
+		display: block;
+		color: var(--ink-3);
+	}
+	.report {
+		margin: 28px 0 0;
+	}
+	.report a {
+		color: var(--accent);
 	}
 
 	@media (max-width: 640px) {
