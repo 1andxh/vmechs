@@ -73,11 +73,33 @@ describe('validateLessonMeta (the content standard, enforced)', () => {
 		);
 	});
 
-	it('allows at most one highlighted word per subtitle', () => {
+	it('counts sentences that end inside closing quotes or brackets', () => {
+		const quoted = valid();
+		quoted.steps[0] = {
+			...quoted.steps[0],
+			subtitle:
+				'Mechanics call it "the bang." The piston is pushed down (hard.) It turns the crank.'
+		};
+		expect(validateLessonMeta(quoted, TODAY)).toContain(
+			'step 1 subtitle has more than two sentences'
+		);
+	});
+
+	it('allows at most one highlight per subtitle', () => {
 		const two = valid();
 		two.steps[0] = { ...two.steps[0], subtitle: 'The *piston* and the *valve* move.' };
-		expect(validateLessonMeta(two, TODAY)).toContain(
-			'step 1 subtitle highlights more than one word'
+		expect(validateLessonMeta(two, TODAY)).toContain('step 1 subtitle has more than one highlight');
+	});
+
+	it('allows a highlight of a word or a short phrase, up to three words', () => {
+		const phrase = valid();
+		phrase.steps[0] = { ...phrase.steps[0], subtitle: 'The *bottom dead centre* is reached.' };
+		expect(validateLessonMeta(phrase, TODAY)).toEqual([]);
+
+		const long = valid();
+		long.steps[0] = { ...long.steps[0], subtitle: 'Watch *the intake valve open now* here.' };
+		expect(validateLessonMeta(long, TODAY)).toContain(
+			'step 1 highlight "the intake valve open now" is longer than three words'
 		);
 	});
 });

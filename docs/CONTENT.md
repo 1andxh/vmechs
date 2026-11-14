@@ -12,7 +12,7 @@ Every lesson on vmechs meets this standard before it's published. Rules marked *
 
 ## Writing
 
-- **Subtitles: one or two sentences (enforced),** written for someone who has never opened a bonnet. One word may be highlighted with `*word*` (enforced): the thing to look at on screen right now.
+- **Subtitles: one or two sentences (enforced),** written for someone who has never opened a bonnet. One thing may be highlighted with `*word*`: a single word or a short phrase of up to three words, such as `*intake valve*` (enforced). It is the thing to look at on screen right now.
 - **Steps cover the whole cycle (enforced).** The first step starts at 0, each step starts where the previous one ends, and there are no gaps or overlaps.
 - **The long explanation goes in the sheet**, inside `<Step n={…}>`. Write it for the curious reader; the subtitle is for everyone.
 - **Plain words first.** Introduce the technical term after the plain description ("the very top, called top dead centre").

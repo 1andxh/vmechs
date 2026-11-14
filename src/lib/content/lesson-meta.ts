@@ -36,9 +36,14 @@ function isIsoDate(s: string): boolean {
 	return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
 }
 
-/** Sentence ends: . ! or ? followed by a space or the end of the text. */
-const countSentences = (s: string) => (s.trim().match(/[.!?](\s|$)/g) ?? []).length;
-const countHighlights = (s: string) => (s.match(/\*[^*]+\*/g) ?? []).length;
+/**
+ * Sentence ends: . ! or ? then a space or the end of the text, allowing
+ * closing quotes or brackets in between (`"the bang." Then…` is two).
+ */
+const countSentences = (s: string) => (s.trim().match(/[.!?]["'”’)\]]*(\s|$)/g) ?? []).length;
+/** The text inside each `*highlight*`. */
+const highlights = (s: string) => [...s.matchAll(/\*([^*]+)\*/g)].map((m) => m[1].trim());
+const MAX_HIGHLIGHT_WORDS = 3;
 
 /** Returns a list of problems; an empty list means the lesson meets the standard. */
 export function validateLessonMeta(meta: LessonMeta, today: string): string[] {
@@ -71,8 +76,12 @@ export function validateLessonMeta(meta: LessonMeta, today: string): string[] {
 		if (!(step.to > step.from)) errors.push(`step ${n} must end after it starts`);
 		if (countSentences(step.subtitle) > 2)
 			errors.push(`step ${n} subtitle has more than two sentences`);
-		if (countHighlights(step.subtitle) > 1)
-			errors.push(`step ${n} subtitle highlights more than one word`);
+		const marked = highlights(step.subtitle);
+		if (marked.length > 1) errors.push(`step ${n} subtitle has more than one highlight`);
+		for (const text of marked) {
+			if (text.split(/\s+/).length > MAX_HIGHLIGHT_WORDS)
+				errors.push(`step ${n} highlight "${text}" is longer than three words`);
+		}
 	});
 
 	return errors;
