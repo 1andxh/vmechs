@@ -24,7 +24,7 @@ Interactive lessons on how cars work, from engines to transmissions to electroni
 
 ## Getting started
 
-Developed with Node.js 26 and npm.
+Requires Node.js 22.17 or newer and npm. CI and Cloudflare Pages build with the version pinned in `.node-version` (24).
 
 ```sh
 git clone https://github.com/1andxh/vmechs.git
