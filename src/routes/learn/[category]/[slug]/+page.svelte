@@ -6,7 +6,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.meta.title} · Mecha</title>
+	<title>{data.meta.title} · vmechs</title>
 	<meta name="description" content={data.meta.summary} />
 </svelte:head>
 

@@ -67,7 +67,7 @@
 <!-- data-hydrated lets tests (and anything else) wait until the controls are live. -->
 <div class="lesson" data-hydrated={hydrated || undefined}>
 	<header class="bar">
-		<a href="/" class="brand">mecha</a>
+		<a href="/" class="brand">vmechs</a>
 		<h1 class="title">{title}</h1>
 		<button
 			type="button"

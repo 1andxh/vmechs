@@ -1,4 +1,4 @@
-# Mecha
+# vmechs
 
 Interactive lessons on how cars work, from engines to transmissions to electronics. Each lesson is a 3D mechanism you can play, pause, scrub and take apart, with the explanation shown as short subtitles under the moving parts.
 

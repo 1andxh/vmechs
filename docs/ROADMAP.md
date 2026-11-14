@@ -1,8 +1,8 @@
-# Mecha roadmap
+# vmechs roadmap
 
-## Where Mecha is headed
+## Where vmechs is headed
 
-Mecha teaches how cars work through interactive mechanisms you can play, pause, scrub and take apart. Today it has one polished lesson, the four-stroke engine, built on a calm "stage and subtitles" design. This roadmap covers everything around that lesson: the homepage, a full curriculum, features for each kind of reader, and a backend.
+vmechs (virtual mechanics) teaches how cars work through interactive mechanisms you can play, pause, scrub and take apart. Today it has one polished lesson, the four-stroke engine, built on a calm "stage and subtitles" design. This roadmap covers everything around that lesson: the homepage, a full curriculum, features for each kind of reader, and a backend.
 
 It's written for four kinds of readers:
 

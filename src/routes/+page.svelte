@@ -6,11 +6,11 @@
 </script>
 
 <svelte:head>
-	<title>Mecha · How cars actually work</title>
+	<title>vmechs · How cars actually work</title>
 </svelte:head>
 
 <div class="home">
-	<p class="brand">mecha</p>
+	<p class="brand">vmechs</p>
 	<h1>See how a car works, part by part.</h1>
 	<p class="lede">
 		Interactive guides you can play, pause and take apart, from the engine to the transmission to
