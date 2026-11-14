@@ -24,7 +24,7 @@ Interactive lessons on how cars work, from engines to transmissions to electroni
 
 ## Getting started
 
-Requires Node.js 22.17 or newer and npm. CI and Cloudflare Pages build with the version pinned in `.node-version` (24).
+Requires Node.js 22.17 or newer and npm. CI and Cloudflare build with the version pinned in `.node-version` (24).
 
 ```sh
 git clone https://github.com/1andxh/vmechs.git
@@ -99,7 +99,7 @@ Browser tests run in Chromium, Firefox, WebKit (Safari's engine) and an emulated
 
 ## Roadmap
 
-- **Now:** ship it (Cloudflare Pages, CI, analytics), then help people find the lesson: a landing page, a system index, and a content and safety standard.
+- **Now:** ship it (Cloudflare, CI, analytics), then help people find the lesson: a landing page, a system index, and a content and safety standard.
 - **Next:** a valvetrain lesson that tests the architecture before any shared kit is built, then bounded reader features: quick checks, warning lights and one "Break it" demo.
 - **Later:** a FastAPI backend that starts with a "Report a mistake" intake, then embeds, offline and share images.
 

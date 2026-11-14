@@ -1,0 +1,11 @@
+// Cloudflare Workers config. The site is fully prerendered by adapter-static,
+// so the Worker only serves the files in build/ as static assets: there is no
+// server code ("main"). Having this file also stops `wrangler deploy` from
+// auto-configuring the project into a server-rendered app.
+{
+	"name": "vmechs",
+	"compatibility_date": "2026-11-14",
+	"assets": {
+		"directory": "./build"
+	}
+}

@@ -22,20 +22,20 @@ It's written for four kinds of readers:
 
 ## Now / Next / Later
 
-|       | Phase                        | Outcome                                                                               |
-| ----- | ---------------------------- | ------------------------------------------------------------------------------------- |
-| Now   | 0. Ship it                   | Live on Cloudflare Pages, CI across 4 browsers, a licence, privacy-friendly analytics |
-| Now   | 1. Find the lesson           | Landing page, system index, About page, and a content and safety standard             |
-| Next  | 2. Second lesson as the test | Valvetrain lesson, then extract what really repeats; a named learning path            |
-| Next  | 3. Bounded reader features   | Quick checks, warning lights, one "Break it" demo; then glossary, search, car map     |
-| Later | 4. FastAPI backend           | Correction intake first; accounts and synced progress when they're needed             |
-| Later | 5. Reach and polish          | Embeds, offline, share images and clips                                               |
+|       | Phase                        | Outcome                                                                           |
+| ----- | ---------------------------- | --------------------------------------------------------------------------------- |
+| Now   | 0. Ship it                   | Live on Cloudflare, CI across 4 browsers, a licence, privacy-friendly analytics   |
+| Now   | 1. Find the lesson           | Landing page, system index, About page, and a content and safety standard         |
+| Next  | 2. Second lesson as the test | Valvetrain lesson, then extract what really repeats; a named learning path        |
+| Next  | 3. Bounded reader features   | Quick checks, warning lights, one "Break it" demo; then glossary, search, car map |
+| Later | 4. FastAPI backend           | Correction intake first; accounts and synced progress when they're needed         |
+| Later | 5. Reach and polish          | Embeds, offline, share images and clips                                           |
 
 ---
 
 ## Phase 0: Ship it
 
-- **Deploy** the static build to Cloudflare Pages: build command `npm run build`, output folder `build`, with a preview deploy for every branch.
+- **Deploy** the static build to Cloudflare as a Worker serving static assets: build command `npm run build`, deploy command `npx wrangler deploy`, configured by `wrangler.jsonc`.
 - **CI:** GitHub Actions runs linting, type checks, unit tests and the browser tests on every push and pull request. The browser suite already covers Chromium, Firefox, desktop WebKit and WebKit at iPhone size with touch, runs in under 20 seconds, and has already caught a real hydration bug.
 - **Licence:** choose one; the repo is currently public without a licence.
 - **Analytics:** a privacy-friendly, cookie-free option such as Cloudflare Web Analytics. Decide first which few questions it should answer (do people finish the lesson? do they open "All steps"?).
