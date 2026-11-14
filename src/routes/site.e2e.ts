@@ -131,8 +131,11 @@ test('clicking a step plays its range, then stops inside it', async ({ page }) =
 	await openArticle(page);
 	await stepButton(page, 'Compression').click();
 	await expect(stepButton(page, 'Compression')).toHaveAttribute('aria-current', 'step');
-	// Normal speed is 120°/s, so a 180° stroke takes ~1.5 s. Wait for it to park.
-	await expect(page.getByRole('button', { name: 'Play' })).toBeVisible({ timeout: 5_000 });
+	// At 120°/s a 180° stroke takes ~1.5 s, but each frame advances at most 0.1 s
+	// (so a background tab doesn't jump). On a slow, software-rendered CI machine
+	// that stretches the stroke well past 5 s (seen: 337° after 5 s, still
+	// playing). This test checks where it parks, not how fast, so wait generously.
+	await expect(page.getByRole('button', { name: 'Play' })).toBeVisible({ timeout: 20_000 });
 	const angle = Number(await slider(page).inputValue());
 	expect(angle).toBeGreaterThanOrEqual(359);
 	expect(angle).toBeLessThanOrEqual(360);
