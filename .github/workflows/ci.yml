@@ -1,0 +1,46 @@
+# Every push to main and every pull request: formatting, types, unit tests,
+# then the browser tests on Chromium, Firefox, WebKit and iPhone (WebKit).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+# A newer push to the same branch cancels the run it replaces.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run check
+      - run: npm run test:unit -- --run
+
+      - name: Install browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Browser tests
+        run: npx playwright test
+
+      - name: Keep failure details
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-results
+          path: test-results
+          retention-days: 7
