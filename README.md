@@ -99,8 +99,13 @@ Browser tests run in Chromium, Firefox, WebKit (Safari's engine) and an emulated
 
 ## Roadmap
 
-- **Now:** ship it (Cloudflare, CI, analytics), then help people find the lesson: a landing page, a system index, and a content and safety standard.
+- **Done:** shipped on Cloudflare with CI on every push.
+- **Now:** help people find the lesson: a landing page, a system index, and a content and safety standard.
 - **Next:** a valvetrain lesson that tests the architecture before any shared kit is built, then bounded reader features: quick checks, warning lights and one "Break it" demo.
 - **Later:** a FastAPI backend that starts with a "Report a mistake" intake, then embeds, offline and share images.
 
 See the full plan in [docs/ROADMAP.md](docs/ROADMAP.md).
+
+## License
+
+No open-source licence. The code is public to read, but all rights are reserved.

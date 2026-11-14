@@ -24,7 +24,7 @@ It's written for four kinds of readers:
 
 |       | Phase                        | Outcome                                                                           |
 | ----- | ---------------------------- | --------------------------------------------------------------------------------- |
-| Now   | 0. Ship it                   | Live on Cloudflare, CI across 4 browsers, a licence, privacy-friendly analytics   |
+| Done  | 0. Ship it                   | Live on Cloudflare, CI across 4 browsers on every push                            |
 | Now   | 1. Find the lesson           | Landing page, system index, About page, and a content and safety standard         |
 | Next  | 2. Second lesson as the test | Valvetrain lesson, then extract what really repeats; a named learning path        |
 | Next  | 3. Bounded reader features   | Quick checks, warning lights, one "Break it" demo; then glossary, search, car map |
@@ -33,15 +33,15 @@ It's written for four kinds of readers:
 
 ---
 
-## Phase 0: Ship it
+## Phase 0: Ship it (done)
 
-- **Deploy** the static build to Cloudflare as a Worker serving static assets: build command `npm run build`, deploy command `npx wrangler deploy`, configured by `wrangler.jsonc`.
-- **CI:** GitHub Actions runs linting, type checks, unit tests and the browser tests on every push and pull request. The browser suite already covers Chromium, Firefox, desktop WebKit and WebKit at iPhone size with touch, runs in under 20 seconds, and has already caught a real hydration bug.
-- **Licence:** choose one; the repo is currently public without a licence.
-- **Analytics:** a privacy-friendly, cookie-free option such as Cloudflare Web Analytics. Decide first which few questions it should answer (do people finish the lesson? do they open "All steps"?).
-- **Real phones:** test on an actual iPhone and Android phone, and set budgets for what matters: time until the lesson can be used, and smooth frame rate while the engine runs on a mid-range phone.
+- **Deploy:** live at [vmechs.sandoh-dev.workers.dev](https://vmechs.sandoh-dev.workers.dev/), a Cloudflare Worker serving the static build (`npm run build`, then `npx wrangler deploy`, configured by `wrangler.jsonc`). Hashed assets are cached for a year via `static/_headers`.
+- **CI:** GitHub Actions runs linting, type checks, unit tests and the browser tests on every push. The browser suite covers Chromium, Firefox, desktop WebKit and WebKit at iPhone size with touch. Development happens on a single branch, so CI is a signal on every push rather than a merge gate.
+- **Licence:** none. The code is public to read, but all rights are reserved.
+- **Analytics:** deferred until the site has its own domain, then a privacy-friendly, cookie-free option such as Cloudflare Web Analytics. Decide first which few questions it should answer (do people finish the lesson? do they open "All steps"?).
+- **Real phones:** checked on a real phone. Measured budgets for slower devices come with the low-end-phone work in Phase 2.
 
-**Done when** the site works on a phone at a public URL, and a failing CI run blocks a merge.
+**Done when** the site works on a phone at a public URL, and CI reports on every push. Both are true.
 
 ## Phase 1: Find the lesson
 
