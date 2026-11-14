@@ -30,6 +30,50 @@ test('home lists the four-stroke article and links to it', async ({ page }) => {
 	await expect(page.getByRole('heading', { level: 1 })).toHaveText(/four-stroke/i);
 });
 
+test('landing: "See inside the engine" opens the engine page', async ({ page }) => {
+	await page.goto('/');
+	await page.getByRole('link', { name: /see inside the engine/i }).click();
+	await expect(page).toHaveURL(ARTICLE);
+});
+
+test('landing: the engine drawing is a way in (its part callouts link to the engine page)', async ({
+	page
+}) => {
+	await page.goto('/');
+	const hasWebGL = await page.evaluate(() => {
+		const c = document.createElement('canvas');
+		return !!(c.getContext('webgl2') ?? c.getContext('webgl'));
+	});
+	test.skip(!hasWebGL, 'No WebGL here, so the drawing (and its callouts) is not rendered');
+	const crankshaft = page.getByRole('link', { name: /crankshaft/i });
+	await expect(crankshaft).toBeVisible({ timeout: 15_000 });
+	await crankshaft.click();
+	await expect(page).toHaveURL(ARTICLE);
+});
+
+test('landing: the system list links published lessons and marks planned ones as coming', async ({
+	page
+}) => {
+	await page.goto('/');
+	const systems = page.getByRole('region', { name: 'The car, system by system' });
+	await expect(systems.getByRole('heading', { name: 'Transmission', level: 3 })).toBeVisible();
+	await expect(
+		systems.getByRole('link', { name: /how a four-stroke engine works/i })
+	).toHaveAttribute('href', ARTICLE);
+	// Planned lessons are plain text, announced as coming soon, never links.
+	await expect(systems.getByRole('link', { name: /clutch/i })).toHaveCount(0);
+	await expect(systems.getByText('Clutch (coming soon)')).toBeAttached();
+});
+
+test('landing: fits a 320px phone with no console errors', async ({ page }) => {
+	const errors = trackErrors(page);
+	await page.setViewportSize({ width: 320, height: 700 });
+	await page.goto('/');
+	await page.waitForTimeout(1000); // let the hero engine load and run
+	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320);
+	expect(errors).toEqual([]);
+});
+
 // Covers both paths: with WebGL the 3D canvas must mount; without it (e.g.
 // headless Firefox on a GPU-less CI machine) the fallback message must show.
 // Which path ran is recorded as an annotation, so lost WebGL coverage is visible.
