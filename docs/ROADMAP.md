@@ -2,7 +2,7 @@
 
 ## Where vmechs is headed
 
-vmechs (virtual mechanics) teaches how cars work through interactive mechanisms you can play, pause, scrub and take apart. Today it has one polished lesson, the four-stroke engine, built on a calm "stage and subtitles" design. This roadmap covers everything around that lesson: the homepage, a full curriculum, features for each kind of reader, and a backend.
+vmechs (virtual mechanics) teaches how cars work through interactive mechanisms you can play, pause, scrub and take apart. Today it has one polished lesson, the four-stroke engine, built on a calm "stage and subtitles" design. This roadmap covers what comes next: launching, helping people find lessons, growing the curriculum, features for each kind of reader, and a backend.
 
 It's written for four kinds of readers:
 
@@ -14,103 +14,125 @@ It's written for four kinds of readers:
 ## Guiding principles
 
 1. **Calm, single-focus screens.** One visual, one or two sentences, one control. Detail is always one tap away, never on screen by default.
-2. **Content is the bottleneck, not code.** Each lesson needs a mechanism and careful writing, so making lessons cheap to produce comes before making many of them.
+2. **Content is the bottleneck, not code.** Each lesson needs a mechanism and careful writing. Shared parts are extracted from real lessons, not designed in advance.
 3. **One lesson, four depths.** Rather than a separate site per audience, each lesson has layers: Basics, Deep dive, and In the real world.
-4. **Accuracy is the brand.** Lessons cite sources, physics lives in tested pure functions, and simplifications are labelled.
-5. **Static until a feature truly needs a server.** Then a FastAPI backend, one step at a time.
+4. **Accuracy is the brand.** Every lesson cites sources, shows when it was last reviewed, labels its simplifications, and has a way to report a mistake.
+5. **Explain, never diagnose.** vmechs teaches how systems work. It doesn't diagnose a reader's car, and it always says when to stop driving or see a mechanic.
+6. **Let real needs pull features in.** Bigger features (the car map, a mechanism kit, accounts) arrive when the content or the readers need them.
 
 ## Now / Next / Later
 
-|       | Phase                              | Outcome                                                            |
-| ----- | ---------------------------------- | ------------------------------------------------------------------ |
-| Now   | 0. Ship it                         | Live URL, CI on every push, a licence chosen                       |
-| Now   | 1. The site around the lesson      | Homepage car map, system pages, glossary, search                   |
-| Next  | 2. Mechanism kit + core curriculum | Reusable 3D parts; about 10 powertrain lessons                     |
-| Next  | 3. Useful for every audience       | Depth layers, "Break it" mode, warning lights, symptom finder      |
-| Later | 4. FastAPI backend                 | Accounts, synced progress, quiz results, corrections, search API   |
-| Later | 5. Reach and polish                | Embeds for teachers, low-end-device fallback, offline, share cards |
+|       | Phase                        | Outcome                                                                               |
+| ----- | ---------------------------- | ------------------------------------------------------------------------------------- |
+| Now   | 0. Ship it                   | Live on Cloudflare Pages, CI across 4 browsers, a licence, privacy-friendly analytics |
+| Now   | 1. Find the lesson           | Landing page, system index, About page, and a content and safety standard             |
+| Next  | 2. Second lesson as the test | Valvetrain lesson, then extract what really repeats; a named learning path            |
+| Next  | 3. Bounded reader features   | Quick checks, warning lights, one "Break it" demo; then glossary, search, car map     |
+| Later | 4. FastAPI backend           | Correction intake first; accounts and synced progress when they're needed             |
+| Later | 5. Reach and polish          | Embeds, offline, share images and clips                                               |
 
 ---
 
 ## Phase 0: Ship it
 
-- **Deploy** the static build to Cloudflare Pages or Netlify, with a preview deploy for every branch.
-- **CI:** GitHub Actions runs linting, type checks, unit tests and browser tests (Chromium, Firefox, WebKit, iPhone) on every push and pull request.
+- **Deploy** the static build to Cloudflare Pages: build command `npm run build`, output folder `build`, with a preview deploy for every branch.
+- **CI:** GitHub Actions runs linting, type checks, unit tests and the browser tests on every push and pull request. The browser suite already covers Chromium, Firefox, desktop WebKit and WebKit at iPhone size with touch, runs in under 20 seconds, and has already caught a real hydration bug.
 - **Licence:** choose one; the repo is currently public without a licence.
-- **Real devices:** test on an actual iPhone and Android phone (GPU, touch orbit, frame rate) and set a Lighthouse budget: performance of at least 90, and a size cap on the initial JavaScript.
-- **Sharing:** a share image and page metadata for each lesson.
+- **Analytics:** a privacy-friendly, cookie-free option such as Cloudflare Web Analytics. Decide first which few questions it should answer (do people finish the lesson? do they open "All steps"?).
+- **Real phones:** test on an actual iPhone and Android phone, and set budgets for what matters: time until the lesson can be used, and smooth frame rate while the engine runs on a mid-range phone.
 
 **Done when** the site works on a phone at a public URL, and a failing CI run blocks a merge.
 
-## Phase 1: The site around the lesson
+## Phase 1: Find the lesson
 
-- **Homepage: "Explore the car."** A calm stage with one car in a slow cutaway. Hotspots name each system: engine, transmission, brakes, suspension, steering, cooling, electrical, EV. Tap one to open it. Below it: "Start here" and "Recently added". The first version can be a simple low-poly car or a 2D silhouette.
-- **System pages** such as `/learn/engine`: a short intro, then the lessons in a recommended order with your progress.
-- **Lesson navigation:** previous and next lesson, plus links to the parts used in a lesson.
-- **Glossary:** a page per term (`/glossary/top-dead-centre`) with a short definition and a small visual. Terms in lesson text open a popover.
-- **Search:** a static Pagefind index across lessons, glossary terms and parts.
-- **Progress without accounts:** watched lessons are saved in the browser.
-- **The basics:** a 404 page, an About page explaining how accuracy is handled, a sitemap and an RSS feed.
+- **Landing page:** what vmechs is, and a clear path to the lesson that exists. No interactive car map yet: with one lesson, it doesn't help anyone find anything.
+- **System index:** the car's systems as a simple list, showing which have lessons and which are coming.
+- **About page:** why vmechs exists, how accuracy is handled, and how to report a mistake.
+- **Content standard**, applied to the four-stroke lesson before any new lesson is written:
+  - a source list for each lesson, and a "last reviewed" date
+  - simplifications labelled where they appear
+  - a "Report a mistake" link (an email address or GitHub issue form until the backend exists)
+  - safety rules for repair-related content: no diagnosis from symptoms, clear stop-and-tow guidance where it applies, and extra review for brakes, steering and EV high voltage
+- **Keyboard and screen-reader pass** before the launch is announced, not at the end.
+- **The basics:** a 404 page, a sitemap, page metadata.
 
-**Done when** a first-time visitor can land, find a system and finish a lesson without help.
+**Done when** a first-time visitor can land, understand what the site is, and reach and finish the lesson without help.
 
-## Phase 2: Mechanism kit + core curriculum
+## Phase 2: Second lesson as the architecture test
 
-### 2a. Make lessons cheap to build (first)
+- **Build the valvetrain lesson next:** camshaft, timing belt or chain, and valve overlap. It sits right next to the four-stroke lesson and removes that lesson's "idealised valve timing" caveat.
+- **Then extract what genuinely repeats.** Write down which parts and patterns transferred from the first lesson, and turn only those into shared components. The shared kit grows from real lessons, never ahead of them.
+- **Lesson state grows only when a lesson needs it.** Today one driving angle drives everything. A fault demo or a side-by-side comparison will need more (a fault setting, two models), and that's the moment to generalise into a lesson-owned state object with named values.
+- **Low-end phones:** measure on weak devices and add a lighter fallback (simpler 3D or a 2D version) where the measurements show it's needed. Checking for WebGL support alone isn't enough.
+- **A named learning path:** "Powertrain basics", defined up front with its lessons, the order, and what a reader should understand at the end. It's published and reviewed as a whole.
 
-- **Mechanism kit:** tested, reusable parts for shafts, spur and planetary gears, belts and chains, cams and followers, pistons and cranks, springs, levers, hydraulic pistons, flowing air and fluid, and wires with current. Each part is driven by the lesson's single driving value.
-- **2D lesson mode** for electrical and conceptual topics: the same stage, subtitles and timeline, with an SVG visual instead of 3D.
-- **Authoring tools:** a `new:lesson` command that scaffolds a lesson, a development page for tuning camera, lighting and step ranges live, and a content checklist covering sources, simplifications and subtitle length.
-
-### 2b. Core curriculum, in teaching order
+**Powertrain basics, in order**
 
 1. Four-stroke engine (done)
-2. Engine layouts: inline-4, V6, boxer, and firing order
-3. Valvetrain: camshaft, timing belt or chain, valve overlap
+2. Valvetrain: camshaft, timing, valve overlap
+3. Engine layouts: inline-4, V6, boxer, and firing order
 4. Gears and gear ratios: trading speed for torque
 5. Clutch
 6. Manual gearbox, including synchros
-7. Differential: open, then limited-slip
+7. Differential
 8. Automatic gearbox: planetary gearsets
-9. Turbocharger
-10. Cooling and lubrication
 
-After the powertrain: chassis (brakes and ABS, suspension, steering), then electrical (battery, starter, alternator, ignition), then EVs and hybrids.
+After that: turbocharging, cooling and lubrication, then chassis (brakes and ABS, suspension, steering), electrical (battery, starter, alternator, ignition), and EVs and hybrids.
 
-**Done when** a new lesson built from the kit takes days rather than weeks, and the powertrain path is complete.
+**Done when** the valvetrain lesson is live, the shared parts are extracted from two real lessons, and the Powertrain basics path is defined.
 
-## Phase 3: Useful for every audience
+## Phase 3: Bounded reader features
 
-- **Depth layers:** each lesson gets a Basics / Deep dive switch. Deep dive adds the numbers, formulas and physics.
-- **"Break it" mode:** switch on a fault and watch the mechanism misbehave, alongside the symptom you'd notice in a real car. Examples: worn piston rings (blue smoke, lost compression), a burnt valve (misfire), a slipping clutch (revs rise but the car doesn't speed up), worn brake pads.
-- **Dashboard warning lights:** what each common light means, how urgent it is, and which system and lesson it relates to.
-- **Symptom finder:** a short guided flow (a noise, a smell, a feeling, a warning light) that ends at the likely systems, the matching "Break it" scenarios, and clear advice on when to see a mechanic. It is curated by hand.
-- **Compare mode:** two mechanisms side by side on one timeline, such as inline-4 vs boxer, or manual vs automatic vs CVT.
-- **Quick checks:** two or three optional questions at the end of a lesson, answered by scrubbing to the right moment ("Drag to where the intake valve closes").
+Small, self-contained features first:
 
-**Done when** each audience has at least one feature built for it, and one lesson clearly serves all of them.
+- **Quick checks:** two or three optional questions at the end of a lesson, answered by scrubbing to the right moment ("Drag to where the intake valve closes"). Results stay in the browser.
+- **Dashboard warning lights:** what each common light means, how urgent it is, and which system it relates to. It follows the safety rules: "stop safely and get help" comes first where it applies.
+- **One "Break it" demo:** a single fault, such as a slipping clutch (revs rise but the car doesn't speed up), shown as a clearly labelled scenario with a note on what the visual simplifies.
+- **Depth layers:** a Basics / Deep dive switch on lessons where there's genuine depth to add.
+
+Once there are at least three lessons:
+
+- **Glossary** with tappable terms in lesson text, **search** (a static Pagefind index), and an **interactive car map** on the homepage.
+
+Later, when the content and lesson state can support them:
+
+- **More "Break it" scenarios**, **compare mode** (two mechanisms side by side), and a cautious **symptom guide** that points to possible systems and urgency, never to a diagnosis.
+
+**Done when** each audience has at least one feature built for it, and every feature follows the content and safety standard.
 
 ## Phase 4: FastAPI backend
 
-The site stays static; the API is a separate service. Each step is added only when a feature from earlier phases needs it.
+The site stays static and keeps working if the API is down. The API is a separate service, hosted on a VPS. It's also a deliberate way to learn backend development, so each step is a small, real feature.
 
-| Step | Feature                                                                                | What it involves                                      |
-| ---- | -------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| 4.1  | Service skeleton: FastAPI, Postgres, SQLAlchemy and Alembic, deployed with tests in CI | Project layout, migrations, configuration, deployment |
-| 4.2  | Accounts: sign in with an email link or with GitHub or Google                          | Auth flows, cross-domain sessions and cookies, CORS   |
-| 4.3  | Synced progress: move browser-saved progress into the account                          | Data modelling, idempotent sync, conflict handling    |
-| 4.4  | Quiz results and spaced review                                                         | Relational design, background jobs                    |
-| 4.5  | "Suggest a correction" on any step, with a review queue                                | Validation, rate limiting, roles and permissions      |
-| 4.6  | Search API with Postgres full-text search, powering a better symptom finder            | Indexing, ranking, query design                       |
-| 4.7  | Lesson discussions (optional)                                                          | Moderation, abuse prevention, pagination              |
+| Step | Feature                                                                                                                          | What it teaches                                                |
+| ---- | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| 4.1  | **"Report a mistake" intake**: one endpoint, one table, a private review list. No accounts                                       | FastAPI, Postgres, migrations, validation, deploying a service |
+| 4.2  | **Hardening the intake:** rate limits, a honeypot field, size limits, no logging of submissions, a retention and deletion policy | Abuse prevention, privacy by design, operations                |
+| 4.3  | **Accounts**, once readers want progress on more than one device. Start with one simple sign-in method                           | Auth flows, cross-domain sessions and cookies, CORS            |
+| 4.4  | **Synced progress:** move browser-saved progress and quick-check results into the account                                        | Data modelling, idempotent sync, conflict handling             |
 
-**Done when** you can sign in on a phone and a laptop and see the same progress, and corrections go through the review queue.
+Not planned: a server-side search API (static search covers the static content) and discussion threads (moderation cost with little teaching value).
+
+**Done when** mistakes can be reported from any lesson and reviewed privately, and, once accounts exist, progress is the same on a phone and a laptop.
 
 ## Phase 5: Reach and polish
 
-- **Embeds:** an "Embed this lesson" option so teachers and bloggers can put a lesson on their own pages.
-- **Low-end devices:** detect a weak GPU and show a 2D version of the mechanism instead.
-- **Offline:** save lessons to use without a connection, for the garage or the classroom.
-- **Sharing:** export a short looping clip of a stroke, and share cards for each lesson.
-- **Accessibility:** a full screen-reader audit, and a transcript view of each lesson's subtitles.
+- **Embeds:** an "Embed this lesson" option for teachers and bloggers.
+- **Offline:** save lessons for use without a connection.
+- **Sharing:** a share image for each lesson, and short looping clips of a stroke.
 - **Later:** structured courses for schools, and more languages.
+
+Each of these is its own project with ongoing costs, so it waits until readers or teachers ask for it.
+
+---
+
+## Changes in this revision
+
+This roadmap was revised after an independent review. The main changes:
+
+- Phase 1 now focuses on finding the existing lesson; the car map, glossary and search wait for more lessons.
+- A content and safety standard comes before new lessons.
+- The second lesson tests the architecture before any shared kit is built.
+- The backend starts with a "Report a mistake" intake instead of accounts. The search API and discussions were dropped.
+- The low-end-phone fallback moved earlier, and performance targets are now measured on real devices.
+- Kept as planned: browser coverage in CI from the start, and the backend as a deliberate learning track.

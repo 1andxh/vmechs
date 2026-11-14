@@ -99,8 +99,8 @@ Browser tests run in Chromium, Firefox, WebKit (Safari's engine) and an emulated
 
 ## Roadmap
 
-- **Now:** ship it (deploy, CI), then the site around the lesson: a homepage car map, system pages, a glossary and search.
-- **Next:** a reusable mechanism kit and about ten powertrain lessons, then features for every reader: depth layers, "Break it" mode, warning lights and a symptom finder.
-- **Later:** a FastAPI backend (accounts, synced progress, corrections), embeds, offline and low-end-device support.
+- **Now:** ship it (Cloudflare Pages, CI, analytics), then help people find the lesson: a landing page, a system index, and a content and safety standard.
+- **Next:** a valvetrain lesson that tests the architecture before any shared kit is built, then bounded reader features: quick checks, warning lights and one "Break it" demo.
+- **Later:** a FastAPI backend that starts with a "Report a mistake" intake, then embeds, offline and share images.
 
 See the full plan in [docs/ROADMAP.md](docs/ROADMAP.md).
