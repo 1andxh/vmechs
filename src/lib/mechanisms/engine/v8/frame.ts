@@ -12,7 +12,6 @@ export const DECK = 5.3; // top of the cylinder bores along each bank's axis
 export const PITCH = 3; // distance between cylinders along the crank
 export const STAGGER = 0.6;
 export const FRONT_Z = -7.3; // plane of the front pulleys
-export const AMBER = '#ffb46e';
 export const ALONG_Z: V3 = [Math.PI / 2, 0, 0]; // turns a y-aligned cylinder to lie along z
 export const FOUR = [0, 1, 2, 3];
 

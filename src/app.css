@@ -19,8 +19,6 @@
 
 	/* The one highlight colour: the key word in a subtitle, the active part */
 	--accent: #ffb46e;
-	--hot: #ffb46e; /* combustion, centre */
-	--hot-deep: #e0552e; /* combustion, edge */
 
 	/* Stroke colours, used only in the detail sheet's cycle chart */
 	--intake: #6fa8dc;
@@ -28,7 +26,6 @@
 	--power: #ff8a4c;
 	--exhaust: #a495d6;
 
-	--radius: 12px;
 	--font: 'Archivo Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 	/* Headlines set wide, like the badge or spec plate on a car. */
 	--display-stretch: 118%;

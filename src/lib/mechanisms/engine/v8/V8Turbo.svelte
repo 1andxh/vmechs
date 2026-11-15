@@ -9,7 +9,7 @@
 	import { onDestroy, untrack } from 'svelte';
 	import InkPart from '../InkPart.svelte';
 	import { T } from '@threlte/core';
-	import { ALONG_Z, DECK, FOUR, at, cylZ, turboAt, type Bank, type V3 } from './frame.ts';
+	import { ALONG_Z, FOUR, at, turboAt, type Bank, type V3 } from './frame.ts';
 	import { turboTurn } from './kinematics.ts';
 	import FlowLine from './FlowLine.svelte';
 	import { GAS } from './flow.ts';

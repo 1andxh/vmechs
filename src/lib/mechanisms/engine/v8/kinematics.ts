@@ -15,7 +15,7 @@
  * With those, the throws come out at 315°, 225°, 45° and 135°: two pairs in
  * planes at right angles, which is what makes it a cross-plane crank.
  */
-import { ENGINE, pistonDisplacement, wrapCycle } from '../kinematics.ts';
+import { wrapCycle } from '../kinematics.ts';
 import { PULLEYS, type Pulley } from './drive.ts';
 import { BANKS } from './frame.ts';
 
@@ -52,11 +52,6 @@ export function crankAt(seconds: number, rpm: number): number {
  */
 export function cylinderCycle(n: number, crank: number): number {
 	return wrapCycle(crank - firesAt(n) + 360);
-}
-
-/** How far piston n is below the top of its stroke: 0 at TDC, 2 × crank radius at BDC. */
-export function pistonTravel(n: number, crank: number): number {
-	return pistonDisplacement(cylinderCycle(n, crank), ENGINE);
 }
 
 /**

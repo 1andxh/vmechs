@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { ENGINE, wristPinHeight } from '../kinematics';
+import { PISTON, pistonCrown } from './internals';
 import { BELT, BELT_THICKNESS, PULLEYS, beltLength, beltRibs } from './drive';
 import {
 	CYLINDERS,
 	FIRING_ORDER,
 	cylinderCycle,
 	crankAt,
-	pistonTravel,
 	pulleyTurn,
 	throwAngle,
 	turboTurn
@@ -32,8 +32,9 @@ describe('the V8 fires in order 1-8-4-3-6-5-7-2, one cylinder every 90°', () =>
 		}
 	});
 
-	it('puts each piston at the top (TDC) as it fires', () => {
-		FIRING_ORDER.forEach((n, k) => expect(pistonTravel(n, k * 90)).toBeCloseTo(0));
+	it('puts each piston at the top of its stroke (TDC) as it fires', () => {
+		const top = ENGINE.crankRadius + ENGINE.rodLength + PISTON.crown;
+		FIRING_ORDER.forEach((n, k) => expect(pistonCrown(n, k * 90)).toBeCloseTo(top));
 	});
 
 	it('numbers cylinders the usual way: odd on the left bank, 1 at the front', () => {
