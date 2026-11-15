@@ -29,8 +29,9 @@
 	--exhaust: #a495d6;
 
 	--radius: 12px;
-	--font:
-		'Schibsted Grotesk Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--font: 'Archivo Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+	/* Headlines set wide, like the badge or spec plate on a car. */
+	--display-stretch: 118%;
 	--mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
 	color-scheme: dark;

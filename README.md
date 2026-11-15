@@ -19,7 +19,7 @@ Interactive lessons on how cars work, from engines to transmissions to electroni
 | Framework | [SvelteKit](https://svelte.dev/docs/kit) (Svelte 5, TypeScript), static adapter          |
 | Content   | [mdsvex](https://mdsvex.pngwn.io/): Markdown lessons with embedded Svelte components     |
 | 3D        | [three.js](https://threejs.org/) via [Threlte](https://threlte.xyz/)                     |
-| Font      | Schibsted Grotesk, self-hosted via Fontsource                                            |
+| Font      | Archivo (variable, with its width axis), self-hosted via Fontsource                      |
 | Tests     | [Vitest](https://vitest.dev/) (unit) and [Playwright](https://playwright.dev/) (browser) |
 
 ## Getting started

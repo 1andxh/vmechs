@@ -1,5 +1,6 @@
 <script lang="ts">
-	import '@fontsource-variable/schibsted-grotesk';
+	// Archivo with its width axis: wide for headlines, normal width for reading.
+	import '@fontsource-variable/archivo/wdth.css';
 	import '../app.css';
 	import favicon from '#lib/assets/favicon.svg';
 	import type { LayoutProps } from './$types';
