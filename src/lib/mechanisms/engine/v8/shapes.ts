@@ -26,12 +26,19 @@ export function makeShapes() {
 
 	return {
 		box: (w: number, h: number, d: number, r = 0.18) =>
-			keep(new RoundedBoxGeometry(w, h, d, 3, Math.min(r, w / 2, h / 2, d / 2))),
+			keep(new RoundedBoxGeometry(w, h, d, 2, Math.min(r, w / 2, h / 2, d / 2))),
 		cyl: (rTop: number, rBottom: number, h: number, seg = 40, open = false) =>
 			keep(new CylinderGeometry(rTop, rBottom, h, seg, 1, open)),
-		torus: (r: number, tube: number, seg = 44) => keep(new TorusGeometry(r, tube, 14, seg)),
-		tube: (points: V3[], radius: number, closed = false) =>
-			keep(new TubeGeometry(curve(points, closed), closed ? 120 : 40, radius, 10, closed)),
+		// Thin rings (grooves, clamps, lips) show as lines, not as round tubes:
+		// far fewer segments around and along them are indistinguishable.
+		torus: (r: number, tube: number, seg = 44) =>
+			keep(
+				tube < 0.1
+					? new TorusGeometry(r, tube, 6, Math.min(seg, 36))
+					: new TorusGeometry(r, tube, 14, seg)
+			),
+		tube: (points: V3[], radius: number, closed = false, sides = 10) =>
+			keep(new TubeGeometry(curve(points, closed), closed ? 120 : 40, radius, sides, closed)),
 		/** A flat outline (x, y) pushed along z, from z0 to z0 + depth: a closed solid. */
 		prism: (outline: Shape | [number, number][], depth: number, z0 = 0) => {
 			const shape = Array.isArray(outline)

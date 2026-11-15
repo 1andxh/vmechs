@@ -193,9 +193,25 @@
 				return cutAt(uv) * (1.0 - smoothstep(0.4 * uPx, 1.1 * uPx, gap));
 			}
 
+			bool empty(vec2 uv) { return texture2D(tDepth, uv).x >= 1.0; }
+
 			void main() {
 				// weights in CSS pixels, so lines look the same on any screen density
 				float r = 0.9 * uPx * uWeight;
+
+				// Most of the screen is empty background. If this pixel and every
+				// sample the line search reads (creases at r/2, silhouettes at r)
+				// are background, there's nothing to draw: leave the pixel as it is.
+				vec2 h = uTexel * r * 0.5;
+				vec2 f = uTexel * r;
+				if (empty(vUv)
+					&& empty(vUv + vec2(h.x, 0.0)) && empty(vUv - vec2(h.x, 0.0))
+					&& empty(vUv + vec2(0.0, h.y)) && empty(vUv - vec2(0.0, h.y))
+					&& empty(vUv + vec2(f.x, 0.0)) && empty(vUv - vec2(f.x, 0.0))
+					&& empty(vUv + vec2(0.0, f.y)) && empty(vUv - vec2(0.0, f.y))
+					&& empty(vUv + f) && empty(vUv - f)
+					&& empty(vUv + vec2(f.x, -f.y)) && empty(vUv + vec2(-f.x, f.y))) discard;
+
 				float heavy = silhouette(vUv, r);
 				// Behind a cut face lie walls at different depths; no lines between
 				// them, only where the cut face meets something else.
@@ -235,6 +251,13 @@
 		const ratio = $dpr;
 		const w = Math.max(1, Math.floor(width * ratio));
 		const h = Math.max(1, Math.floor(height * ratio));
+		// Anti-aliasing for the first pass: 4 samples per pixel, or 2 on
+		// high-density screens, where edges are already fine and fill rate counts.
+		const samples = ratio >= 2 ? 2 : 4;
+		if (target.samples !== samples) {
+			target.samples = samples;
+			target.dispose(); // reallocated at the new sample count on next use
+		}
 		target.setSize(w, h);
 		lines.uniforms.uTexel.value = [1 / w, 1 / h];
 		flow.uTexel.value = [1 / w, 1 / h];

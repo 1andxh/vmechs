@@ -22,7 +22,8 @@
 
 	// A thin tube down the route, with each vertex's distance along it.
 	const geometry = untrack(() => {
-		const g = s.tube(route, 0.09);
+		// four sides is plenty: the streaks are unlit, so their cross-section never shows
+		const g = s.tube(route, 0.09, false, 4);
 		const length = curve(route).getLength();
 		const uv = g.attributes.uv;
 		const dist = new Float32Array(uv.count);
