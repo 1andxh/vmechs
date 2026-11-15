@@ -2,8 +2,6 @@
 
 Interactive lessons on how cars work, from engines to transmissions to electronics. Each lesson is a 3D mechanism you can play, pause, scrub and take apart, with the explanation shown as short subtitles under the moving parts.
 
-![The four-stroke engine lesson during the power stroke](docs/screenshot.png)
-
 ## Features
 
 - **Procedural 3D mechanisms.** Parts are built from primitives and moved by real kinematics (the slider-crank equation, valve lift curves), not baked animations.
