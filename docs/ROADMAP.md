@@ -26,7 +26,7 @@ It's written for four kinds of readers:
 | ----- | ---------------------------- | --------------------------------------------------------------------------------- |
 | Done  | 0. Ship it                   | Live on Cloudflare, CI across 4 browsers on every push                            |
 | Now   | 1. Find the lesson           | Landing page, system index, About page, and a content and safety standard         |
-| Next  | 2. Second lesson as the test | Valvetrain lesson, then extract what really repeats; a named learning path        |
+| Next  | 2. Second lesson as the test | Gears lesson, then extract what really repeats; a named learning path             |
 | Next  | 3. Bounded reader features   | Quick checks, warning lights, one "Break it" demo; then glossary, search, car map |
 | Later | 4. FastAPI backend           | Correction intake first; accounts and synced progress when they're needed         |
 | Later | 5. Reach and polish          | Embeds, offline, share images and clips                                           |
@@ -60,7 +60,7 @@ It's written for four kinds of readers:
 
 ## Phase 2: Second lesson as the architecture test
 
-- **Build the valvetrain lesson next:** camshaft, timing belt or chain, and valve overlap. It sits right next to the four-stroke lesson and removes that lesson's "idealised valve timing" caveat.
+- **Build the gears lesson next:** "Gears and gear ratios", how a gear pair trades speed for torque. The homepage's gearbox leads to it (ADR 0005). The valvetrain follows: camshaft, timing belt or chain, and valve overlap, which removes the four-stroke lesson's "idealised valve timing" caveat.
 - **Then extract what genuinely repeats.** Write down which parts and patterns transferred from the first lesson, and turn only those into shared components. The shared kit grows from real lessons, never ahead of them.
 - **Lesson state grows only when a lesson needs it.** Today one driving angle drives everything. A fault demo or a side-by-side comparison will need more (a fault setting, two models), and that's the moment to generalise into a lesson-owned state object with named values.
 - **Low-end phones:** measure on weak devices and add a lighter fallback (simpler 3D or a 2D version) where the measurements show it's needed. Checking for WebGL support alone isn't enough.
@@ -69,9 +69,9 @@ It's written for four kinds of readers:
 **Powertrain basics, in order**
 
 1. Four-stroke engine (done)
-2. Valvetrain: camshaft, timing, valve overlap
-3. Engine layouts: inline-4, V6, boxer, and firing order
-4. Gears and gear ratios: trading speed for torque
+2. Gears and gear ratios: trading speed for torque
+3. Valvetrain: camshaft, timing, valve overlap
+4. Engine layouts: inline-4, V6, boxer, and firing order
 5. Clutch
 6. Manual gearbox, including synchros
 7. Differential
@@ -79,7 +79,7 @@ It's written for four kinds of readers:
 
 After that: turbocharging, cooling and lubrication, then chassis (brakes and ABS, suspension, steering), electrical (battery, starter, alternator, ignition), and EVs and hybrids.
 
-**Done when** the valvetrain lesson is live, the shared parts are extracted from two real lessons, and the Powertrain basics path is defined.
+**Done when** the gears lesson is live, the shared parts are extracted from two real lessons, and the Powertrain basics path is defined.
 
 ## Phase 3: Bounded reader features
 
