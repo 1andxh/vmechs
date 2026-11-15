@@ -4,6 +4,7 @@ category: engine
 summary: Intake, compression, power, exhaust. Watch the piston, valves and crankshaft move through the cycle that powers almost every petrol car.
 difficulty: Beginner
 order: 1
+cover: /covers/four-stroke-cycle.jpg
 reviewed: '2026-11-14'
 sources:
   - title: Internal Combustion Engine Fundamentals

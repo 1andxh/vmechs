@@ -26,6 +26,8 @@ export interface LessonMeta {
 	sources: Source[];
 	/** Where the lesson departs from real engines, stated plainly. */
 	simplifications: string[];
+	/** A still of the lesson for listings, served from static/covers/. */
+	cover?: string;
 	steps: StepMeta[];
 }
 
@@ -60,6 +62,10 @@ export function validateLessonMeta(meta: LessonMeta, today: string): string[] {
 		errors.push('reviewed must be a date like 2026-11-14');
 	} else if (meta.reviewed > today) {
 		errors.push('reviewed date is in the future');
+	}
+
+	if (meta.cover !== undefined && !/^\/covers\/[\w-]+\.(jpg|png|webp)$/.test(meta.cover)) {
+		errors.push('cover must be an image in /covers/, like /covers/four-stroke-cycle.jpg');
 	}
 
 	if (!Array.isArray(meta.simplifications)) {

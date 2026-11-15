@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
 import { pathToRef } from './articles';
 import { validateLessonMeta, type LessonMeta } from './lesson-meta';
@@ -34,5 +35,10 @@ describe('every lesson meets the content standard (docs/CONTENT.md)', () => {
 
 		// planned-but-unwritten entries are shown dimmed, never as links
 		for (const entry of entries) expect(entry.available).toBe(entry.href !== null);
+	});
+
+	it('every cover image exists in static/', () => {
+		const covers = Object.values(lessons).flatMap((m) => (m.cover ? [m.cover] : []));
+		expect(covers.filter((c) => !existsSync(`static${c}`))).toEqual([]);
 	});
 });

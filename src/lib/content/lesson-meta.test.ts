@@ -102,4 +102,11 @@ describe('validateLessonMeta (the content standard, enforced)', () => {
 			'step 1 highlight "the intake valve open now" is longer than three words'
 		);
 	});
+
+	it('takes an optional cover image, served from /covers/', () => {
+		expect(errorsFor({ cover: '/covers/four-stroke-cycle.jpg' })).toEqual([]);
+		expect(errorsFor({ cover: 'https://example.com/a.jpg' })).toContain(
+			'cover must be an image in /covers/, like /covers/four-stroke-cycle.jpg'
+		);
+	});
 });

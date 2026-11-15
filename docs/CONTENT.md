@@ -8,6 +8,7 @@ Every lesson on vmechs meets this standard before it's published. Rules marked *
 - **Review date (enforced).** `reviewed` is the date the lesson was last checked against its sources, as `YYYY-MM-DD`, and it can't be in the future. Update it whenever the content is re-checked, not when typos are fixed.
 - **Simplifications are labelled.** List every place the lesson departs from a real car in `simplifications`, in plain language. Mention the important ones in the lesson body too, where they appear.
 - **Physics lives in tested code.** Positions, timings and ratios come from pure functions with unit tests (for example `src/lib/mechanisms/engine/kinematics.ts`), never from hand-placed animation.
+- **Cover image (optional, enforced if set).** `cover: /covers/<slug>.jpg` shows the lesson on the homepage. The file must exist in `static/covers/`; use a still of the lesson itself at 1280×860, saved as JPEG.
 - **Corrections are welcome.** Every lesson ends with a "Report a mistake" link to the issue form. Fix confirmed mistakes promptly and update `reviewed`.
 
 ## Writing
