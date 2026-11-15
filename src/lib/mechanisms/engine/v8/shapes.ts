@@ -8,8 +8,12 @@ import {
 	CatmullRomCurve3,
 	CylinderGeometry,
 	Euler,
+	ExtrudeGeometry,
+	LatheGeometry,
 	Quaternion,
+	Shape,
 	TorusGeometry,
+	Vector2,
 	TubeGeometry,
 	Vector3
 } from 'three';
@@ -23,11 +27,43 @@ export function makeShapes() {
 	return {
 		box: (w: number, h: number, d: number, r = 0.18) =>
 			keep(new RoundedBoxGeometry(w, h, d, 3, Math.min(r, w / 2, h / 2, d / 2))),
-		cyl: (rTop: number, rBottom: number, h: number, seg = 40) =>
-			keep(new CylinderGeometry(rTop, rBottom, h, seg)),
+		cyl: (rTop: number, rBottom: number, h: number, seg = 40, open = false) =>
+			keep(new CylinderGeometry(rTop, rBottom, h, seg, 1, open)),
 		torus: (r: number, tube: number, seg = 44) => keep(new TorusGeometry(r, tube, 14, seg)),
 		tube: (points: V3[], radius: number, closed = false) =>
 			keep(new TubeGeometry(curve(points, closed), closed ? 120 : 40, radius, 10, closed)),
+		/** A flat outline (x, y) pushed along z, from z0 to z0 + depth: a closed solid. */
+		prism: (outline: Shape | [number, number][], depth: number, z0 = 0) => {
+			const shape = Array.isArray(outline)
+				? new Shape(outline.map(([x, y]) => new Vector2(x, y)))
+				: outline;
+			const g = new ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 32 });
+			return keep(g.translate(0, 0, z0));
+		},
+		/**
+		 * A flat band along a closed path in the xy plane, like a belt:
+		 * `thickness` across the path (in the plane), `width` along z.
+		 */
+		band: (points: V3[], thickness: number, width: number, steps = 600) =>
+			keep(
+				new ExtrudeGeometry(
+					new Shape([
+						new Vector2(-thickness / 2, -width / 2),
+						new Vector2(thickness / 2, -width / 2),
+						new Vector2(thickness / 2, width / 2),
+						new Vector2(-thickness / 2, width / 2)
+					]),
+					{ steps, bevelEnabled: false, extrudePath: curve(points, true) }
+				)
+			),
+		/** A turned part: a profile of (radius, height) points spun about y. */
+		lathe: (profile: [number, number][], seg = 40) =>
+			keep(
+				new LatheGeometry(
+					profile.map(([r, y]) => new Vector2(r, y)),
+					seg
+				)
+			),
 		dispose: () => made.forEach((g) => g.dispose())
 	};
 }

@@ -1,9 +1,7 @@
 <!--
-	One part of the procedural engine. InkRenderer draws the lines from its
-	surface, so this is just the mesh, flagged for the accent ink if tinted.
-
-	Temporary: `detail` and `crease` belonged to the earlier outline renderer
-	and are accepted but unused, until this engine is replaced by the model.
+	One part of the drawn engine: just the mesh. InkRenderer draws the lines
+	from its surface; to draw a part in the accent ink, set `userData.ink` on a
+	group around it.
 -->
 <script lang="ts">
 	import { T } from '@threlte/core';
@@ -12,19 +10,14 @@
 	let {
 		geometry,
 		position = [0, 0, 0],
-		rotation = [0, 0, 0],
-		ink
+		rotation = [0, 0, 0]
 	}: {
 		geometry: BufferGeometry;
 		position?: [number, number, number];
 		rotation?: [number, number, number];
-		/** Any value draws this part in the accent ink. */
-		ink?: string;
-		detail?: boolean;
-		crease?: number;
 	} = $props();
 </script>
 
-<T.Mesh {geometry} {position} {rotation} userData={{ ink: ink ? 1 : 0 }}>
+<T.Mesh {geometry} {position} {rotation}>
 	<T.MeshBasicMaterial color="#0a0a0b" />
 </T.Mesh>

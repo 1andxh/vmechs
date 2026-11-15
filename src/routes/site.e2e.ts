@@ -36,33 +36,45 @@ test('landing: "See inside the engine" opens the engine page', async ({ page }) 
 	await expect(page).toHaveURL(ARTICLE);
 });
 
-test('landing: the engine drawing is a way in (its part callouts link to the engine page)', async ({
+test('landing: scrolling takes the engine apart part by part, then offers the way in', async ({
 	page
 }) => {
 	await page.goto('/');
-	const hasWebGL = await page.evaluate(() => {
-		const c = document.createElement('canvas');
-		return !!(c.getContext('webgl2') ?? c.getContext('webgl'));
-	});
-	test.skip(!hasWebGL, 'No WebGL here, so the drawing (and its callouts) is not rendered');
-	const crankshaft = page.getByRole('link', { name: /crankshaft/i });
-	await expect(crankshaft).toBeVisible({ timeout: 15_000 });
-	await crankshaft.click();
+	const tour = page.getByRole('region', { name: 'A V8 engine, taken apart' });
+	// The sentences are real text in reading order, so screen readers and
+	// browsers without WebGL get the same tour.
+	const text = (await tour.innerText()).replace(/\s+/g, ' ');
+	const order = [/intake/, /turbocharger/, /belt/, /cylinder heads/, /\brun\b/].map((w) =>
+		text.search(w)
+	);
+	expect(order.every((i) => i >= 0)).toBe(true);
+	expect([...order].sort((a, b) => a - b)).toEqual(order);
+
+	const run = tour.getByRole('link', { name: /see it run/i });
+	await run.scrollIntoViewIfNeeded();
+	await expect(run).toBeVisible();
+	await run.click();
 	await expect(page).toHaveURL(ARTICLE);
 });
 
-test('landing: the system list links published lessons and marks planned ones as coming', async ({
+test('landing: "Open now" links the open page, and the whole car shows what is ready and coming', async ({
 	page
 }) => {
 	await page.goto('/');
-	const systems = page.getByRole('region', { name: 'The car, system by system' });
-	await expect(systems.getByRole('heading', { name: 'Transmission', level: 3 })).toBeVisible();
-	await expect(
-		systems.getByRole('link', { name: /how a four-stroke engine works/i })
-	).toHaveAttribute('href', ARTICLE);
-	// Planned lessons are plain text, announced as coming soon, never links.
-	await expect(systems.getByRole('link', { name: /clutch/i })).toHaveCount(0);
-	await expect(systems.getByText('Clutch (coming soon)')).toBeAttached();
+	const open = page.getByRole('region', { name: 'Open now' });
+	await expect(open.getByRole('link', { name: /how a four-stroke engine works/i })).toHaveAttribute(
+		'href',
+		ARTICLE
+	);
+
+	const car = page.getByRole('region', { name: 'The whole car' });
+	const engine = car.getByRole('listitem').filter({ hasText: 'Engine' }).first();
+	await expect(engine).toContainText('1 of 5 open');
+	await expect(engine.getByRole('link', { name: 'Open Engine' })).toHaveAttribute('href', ARTICLE);
+	// Systems with nothing open yet say so in words, and offer no link.
+	const transmission = car.getByRole('listitem').filter({ hasText: 'Transmission' });
+	await expect(transmission).toContainText('5 on the way');
+	await expect(transmission.getByRole('link')).toHaveCount(0);
 });
 
 test('landing: fits a 320px phone with no console errors', async ({ page }) => {

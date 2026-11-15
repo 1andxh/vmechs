@@ -6,34 +6,40 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import InkPart from '../InkPart.svelte';
+	import { T } from '@threlte/core';
+	import { BELT, BELT_THICKNESS, PULLEYS, beltRibs } from './drive.ts';
+	import { pulleyTurn } from './kinematics.ts';
 	import { ALONG_Z, FRONT_Z as FZ, type V3 } from './frame.ts';
 	import { makeShapes } from './shapes.ts';
 
+	let { crank = 0 }: { crank?: number } = $props();
+
 	const s = makeShapes();
 	onDestroy(s.dispose);
+	const DEG = Math.PI / 180;
 
-	const pulleys: { at: [number, number]; r: number }[] = [
-		{ at: [0, -0.2], r: 1.35 }, // crankshaft (harmonic damper)
-		{ at: [0, 2.8], r: 0.95 }, // water pump
-		{ at: [-2.5, 3.7], r: 0.55 }, // alternator
-		{ at: [2.6, 0.9], r: 0.72 }, // A/C compressor
-		{ at: [1.6, 2.5], r: 0.42 }, // idler
-		{ at: [-1.7, 1.5], r: 0.42 } // tensioner
-	];
-	const beltPts: V3[] = [
-		[0, -1.62, FZ],
-		[-1.32, -0.7, FZ],
-		[-2.15, 1.55, FZ],
-		[-3.1, 3.6, FZ],
-		[-2.55, 4.3, FZ],
-		[-1.2, 3.8, FZ],
-		[0, 3.8, FZ],
-		[1.15, 2.95, FZ],
-		[2.05, 2.5, FZ],
-		[3.35, 1.2, FZ],
-		[3.1, 0.1, FZ],
-		[1.3, -1.0, FZ]
-	];
+	// Spokes on each pulley's face, so you can see it turn: five on the big
+	// ones, three on the small idler and tensioner.
+	const spokeAngles = (p: (typeof PULLEYS)[number]) =>
+		Array.from({ length: p.r > 0.6 ? 5 : 3 }, (_, k) => (k * 2 * Math.PI) / (p.r > 0.6 ? 5 : 3));
+	const spokeFor = (p: (typeof PULLEYS)[number]) => s.box(0.1, p.r * 0.55, 0.06, 0.02);
+	const spokes = new Map(PULLEYS.map((p) => [p.name, spokeFor(p)]));
+	// A flat serpentine belt, with ribs across its outer face that travel with it.
+	const BELT_WIDTH = 0.36;
+	const RIBS = 40;
+	const RIB = 0.012; // how far a rib stands off the belt: low enough to draw as a fine line
+	const rib = s.box(0.05, RIB, BELT_WIDTH, 0.01);
+	// The loop runs clockwise, so outward is to the left of the direction of travel.
+	const ribAt = (r: { at: [number, number]; along: number }): [number, number, number] => {
+		const out = BELT_THICKNESS / 2 + RIB / 2;
+		return [r.at[0] - Math.sin(r.along) * out, r.at[1] + Math.cos(r.along) * out, FZ];
+	};
+
+	// The pulleys and belt path are shared with the kinematics (drive.ts), so
+	// the pulleys turn at the ratios their drawn sizes imply.
+	const pulleys = PULLEYS;
+	const beltPts: V3[] = BELT.map(([x, y]) => [x, y, FZ]);
+	const belt = s.band(beltPts, BELT_THICKNESS, BELT_WIDTH);
 	// timing cover bolts around its edge
 	const coverBolts: [number, number][] = [
 		[-2.55, -0.9],
@@ -72,7 +78,7 @@
 
 <InkPart geometry={s.box(5.6, 7.2, 0.5, 0.3)} position={[0, 2.3, -6.75]} />
 {#each coverBolts as [x, y] (`${x},${y}`)}
-	<InkPart geometry={bolt} position={[x, y, -7.04]} rotation={ALONG_Z} detail />
+	<InkPart geometry={bolt} position={[x, y, -7.04]} rotation={ALONG_Z} />
 {/each}
 
 {#each pulleys as p, i (i)}
@@ -81,35 +87,46 @@
 		geometry={s.cyl(p.r * 0.38, p.r * 0.38, 0.5)}
 		position={[p.at[0], p.at[1], FZ - 0.1]}
 		rotation={ALONG_Z}
-		detail
 	/>
 	<!-- belt grooves on the rim -->
 	{#each [-0.12, 0.12] as dz (dz)}
-		<InkPart geometry={s.torus(p.r, 0.025, 48)} position={[p.at[0], p.at[1], FZ + dz]} detail />
+		<InkPart geometry={s.torus(p.r, 0.025, 48)} position={[p.at[0], p.at[1], FZ + dz]} />
 	{/each}
-{/each}
-
-<!-- harmonic damper: inner ring and bolts on the crank pulley -->
-<InkPart geometry={s.torus(0.92, 0.06, 40)} position={[0, -0.2, FZ - 0.22]} detail />
-{#each damperBolts as a (a)}
-	<InkPart
-		geometry={bolt}
-		position={[Math.cos(a) * 0.68, -0.2 + Math.sin(a) * 0.68, FZ - 0.26]}
-		rotation={ALONG_Z}
-		detail
-	/>
+	<!-- the turning part: spokes on the face (and the damper's ring and bolts) -->
+	<T.Group position={[p.at[0], p.at[1], FZ]} rotation={[0, 0, pulleyTurn(p, crank) * DEG]}>
+		{#each spokeAngles(p) as a (a)}
+			<InkPart
+				geometry={spokes.get(p.name)!}
+				position={[-Math.sin(a) * p.r * 0.64, Math.cos(a) * p.r * 0.64, -0.24]}
+				rotation={[0, 0, a]}
+			/>
+		{/each}
+		{#if p.name === 'crank'}
+			<InkPart geometry={s.torus(0.92, 0.06, 40)} position={[0, 0, -0.22]} />
+			{#each damperBolts as a (a)}
+				<InkPart
+					geometry={bolt}
+					position={[Math.cos(a) * 0.68, Math.sin(a) * 0.68, -0.26]}
+					rotation={ALONG_Z}
+				/>
+			{/each}
+		{/if}
+	</T.Group>
 {/each}
 
 <!-- water pump body, alternator with its cooling rings, A/C compressor and lines -->
 <InkPart geometry={s.cyl(0.7, 0.7, 0.6)} position={[0, 2.8, -6.85]} rotation={ALONG_Z} />
 <InkPart geometry={s.cyl(0.95, 0.95, 1.6)} position={[-2.5, 3.7, -6.2]} rotation={ALONG_Z} />
 {#each [-0.5, 0, 0.5] as dz (dz)}
-	<InkPart geometry={s.torus(0.96, 0.03, 40)} position={[-2.5, 3.7, -6.2 + dz]} detail />
+	<InkPart geometry={s.torus(0.96, 0.03, 40)} position={[-2.5, 3.7, -6.2 + dz]} />
 {/each}
-<InkPart geometry={s.box(0.5, 1.4, 0.3, 0.08)} position={[-2.5, 2.5, -6.6]} detail />
+<InkPart geometry={s.box(0.5, 1.4, 0.3, 0.08)} position={[-2.5, 2.5, -6.6]} />
 <InkPart geometry={s.box(1.5, 1.3, 1.8, 0.3)} position={[2.6, 0.9, -6.1]} />
 {#each acLines as line, i (i)}
-	<InkPart geometry={line} crease={60} detail />
+	<InkPart geometry={line} />
 {/each}
 
-<InkPart geometry={s.tube(beltPts, 0.11, true)} crease={60} />
+<InkPart geometry={belt} />
+{#each beltRibs(RIBS, crank) as r (r.index)}
+	<InkPart geometry={rib} position={ribAt(r)} rotation={[0, 0, r.along]} />
+{/each}

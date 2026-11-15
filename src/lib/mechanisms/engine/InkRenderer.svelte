@@ -9,19 +9,31 @@
 	  - a sharp turn in surface direction is a crease on a part, drawn with
 	    the fine line.
 	Lines come from the surfaces themselves, so they are continuous and keep
-	one weight per kind, at any model detail. A mesh with `userData.ink = 1`
-	is drawn in the accent colour.
+	one weight per kind, at any model detail. A mesh with `userData.ink` set,
+	or inside a group with it set, is drawn in the accent colour.
+
+	Section cut: meshes with `userData.section` set are cut open by the plane
+	z = sectionZ (everything in front of it is removed). Looking into a cut
+	solid you see its inside, which faces away from the camera; those pixels
+	are drawn as the cut face instead (facing the camera, at their own depth,
+	so uncut near faces still hide them), and hatched at 45°, the drawing
+	convention for a cut surface. The solids must be closed for this to work.
+
+	Pass 3 draws the gas flow (objects on FLOW_LAYER) on top, with its own
+	colours; it reads pass 1's depth to hide behind parts (see v8/flow.ts).
 
 	Drop it inside a <Canvas>; it takes over rendering while mounted.
 -->
 <script lang="ts">
 	import { useTask, useThrelte } from '@threlte/core';
 	import { onDestroy } from 'svelte';
+	import { FLOW_LAYER, getFlow } from './v8/flow.ts';
 	import {
 		Color,
 		DepthTexture,
 		DoubleSide,
 		Mesh,
+		Object3D,
 		OrthographicCamera,
 		PlaneGeometry,
 		Scene,
@@ -34,35 +46,69 @@
 	let {
 		ink = '#f4efe6',
 		accent = '#ffb46e',
-		paper = '#0a0a0b'
-	}: { ink?: string; accent?: string; paper?: string } = $props();
+		paper = '#0a0a0b',
+		sectionZ = -1000
+	}: {
+		ink?: string;
+		accent?: string;
+		paper?: string;
+		/** The section plane's z; parts flagged `section` are removed in front of it. */
+		sectionZ?: number;
+	} = $props();
 
 	const threlte = useThrelte();
 	const renderer = threlte.renderer as WebGLRenderer;
 	const { scene, camera, size, dpr, autoRender, renderStage, invalidate } = threlte;
 
-	// ---- pass 1: normals (rgb) + accent flag (a), with a depth texture ----
+	// ---- pass 1: normals (rgb) + flags (a), with a depth texture ----
+	// a = (2 × accent + cut face) / 3: 0 plain, ⅓ cut face, ⅔ accent, 1 both
 	const target = new WebGLRenderTarget(1, 1, { samples: 4, depthTexture: new DepthTexture(1, 1) });
+	const flow = getFlow();
+	flow.tDepth.value = target.depthTexture;
 	const normals = new ShaderMaterial({
 		side: DoubleSide,
-		uniforms: { uInk: { value: 0 } },
+		uniforms: {
+			uInk: { value: 0 },
+			uSection: { value: 0 },
+			uSectionZ: { value: -1000 }
+		},
 		vertexShader: /* glsl */ `
 			varying vec3 vNormal;
+			varying vec3 vWorld;
 			void main() {
+				vec4 world = modelMatrix * vec4(position, 1.0);
+				vWorld = world.xyz;
 				vNormal = normalize(normalMatrix * normal);
-				gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+				gl_Position = projectionMatrix * viewMatrix * world;
 			}`,
 		fragmentShader: /* glsl */ `
 			uniform float uInk;
+			uniform float uSection;
+			uniform float uSectionZ;
 			varying vec3 vNormal;
+			varying vec3 vWorld;
 			void main() {
+				bool sectioned = uSection > 0.5;
+				if (sectioned && vWorld.z < uSectionZ) discard;
 				vec3 n = normalize(vNormal) * (gl_FrontFacing ? 1.0 : -1.0);
-				gl_FragColor = vec4(n * 0.5 + 0.5, uInk);
+				float cut = 0.0;
+				if (sectioned && !gl_FrontFacing) {
+					// The inside of a cut solid: draw it as the cut face, facing the
+					// camera. It keeps its own depth, so where the solid isn't cut open
+					// its near faces still hide it.
+					n = -normalize(mat3(viewMatrix) * vec3(0.0, 0.0, 1.0));
+					cut = 1.0;
+				}
+				gl_FragColor = vec4(n * 0.5 + 0.5, (2.0 * uInk + cut) / 3.0);
 			}`
 	});
-	// Per mesh, before it's drawn: pass its accent flag to the shared material.
+	// Per mesh, before it's drawn: pass its flags to the shared material. A flag
+	// set on a group applies to everything inside it.
+	const flagged = (o: Object3D | null, key: string): boolean =>
+		!!o && (!!o.userData[key] || flagged(o.parent, key));
 	normals.onBeforeRender = (_r, _s, _c, _g, object) => {
-		normals.uniforms.uInk.value = object.userData.ink ? 1 : 0;
+		normals.uniforms.uInk.value = flagged(object, 'ink') ? 1 : 0;
+		normals.uniforms.uSection.value = flagged(object, 'section') ? 1 : 0;
 		normals.uniformsNeedUpdate = true;
 	};
 
@@ -131,18 +177,35 @@
 				m = max(m, 1.0 - dot(n, nrm(uv - vec2(0.0, o.y))));
 				return smoothstep(0.18, 0.4, m);
 			}
+			// flags in alpha: (2 × accent + cut face) / 3
+			float accentAt(vec2 uv) { return step(0.5, texture2D(tNormal, uv).a); }
+			float cutAt(vec2 uv) { return mod(floor(texture2D(tNormal, uv).a * 3.0 + 0.5), 2.0); }
 			float accentNear(vec2 uv, float r) {
 				vec2 o = uTexel * r;
-				return max(max(texture2D(tNormal, uv).a, texture2D(tNormal, uv + o).a),
-					max(texture2D(tNormal, uv - o).a, max(texture2D(tNormal, uv + vec2(o.x, -o.y)).a,
-					texture2D(tNormal, uv + vec2(-o.x, o.y)).a)));
+				return max(max(accentAt(uv), accentAt(uv + o)),
+					max(accentAt(uv - o), max(accentAt(uv + vec2(o.x, -o.y)), accentAt(uv + vec2(-o.x, o.y)))));
+			}
+			// 45° hatching on cut faces, in screen space like a drawn section
+			float hatch(vec2 uv) {
+				float spacing = 7.0 * uPx * uWeight;
+				float along = fract((gl_FragCoord.x + gl_FragCoord.y) / spacing);
+				float gap = min(along, 1.0 - along) * spacing; // device px to the nearest line
+				return cutAt(uv) * (1.0 - smoothstep(0.4 * uPx, 1.1 * uPx, gap));
 			}
 
 			void main() {
 				// weights in CSS pixels, so lines look the same on any screen density
-				float heavy = silhouette(vUv, 0.9 * uPx * uWeight);
+				float r = 0.9 * uPx * uWeight;
+				float heavy = silhouette(vUv, r);
+				// Behind a cut face lie walls at different depths; no lines between
+				// them, only where the cut face meets something else.
+				vec2 o = uTexel * r;
+				float allCut = cutAt(vUv) * cutAt(vUv + vec2(o.x, 0.0)) * cutAt(vUv - vec2(o.x, 0.0))
+					* cutAt(vUv + vec2(0.0, o.y)) * cutAt(vUv - vec2(0.0, o.y))
+					* cutAt(vUv + o) * cutAt(vUv - o) * cutAt(vUv + vec2(o.x, -o.y)) * cutAt(vUv + vec2(-o.x, o.y));
+				heavy *= 1.0 - allCut;
 				float fine = crease(vUv, 0.5 * uPx * uWeight) * 0.7;
-				float line = max(heavy, fine);
+				float line = max(max(heavy, fine), hatch(vUv) * 0.5);
 				bool solid = texture2D(tDepth, vUv).x < 1.0;
 				vec3 color = mix(uInk, uAccent, accentNear(vUv, 1.3 * uPx));
 				// paper inside the engine (so parts hide the ones behind), clear outside
@@ -154,6 +217,11 @@
 	const quad = new Mesh(new PlaneGeometry(2, 2), lines);
 	const screen = new Scene().add(quad);
 	const screenCamera = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+	$effect(() => {
+		normals.uniforms.uSectionZ.value = sectionZ;
+		invalidate();
+	});
 
 	$effect(() => {
 		lines.uniforms.uInk.value.set(ink);
@@ -169,6 +237,7 @@
 		const h = Math.max(1, Math.floor(height * ratio));
 		target.setSize(w, h);
 		lines.uniforms.uTexel.value = [1 / w, 1 / h];
+		flow.uTexel.value = [1 / w, 1 / h];
 		lines.uniforms.uPx.value = ratio;
 		// Full weight from 1000 CSS px wide; down to 65% on a phone, where the
 		// engine is drawn much smaller and a full-weight line would swamp it.
@@ -190,6 +259,8 @@
 			const cam = camera.current as PerspectiveCamera;
 			lines.uniforms.uNear.value = cam.near;
 			lines.uniforms.uFar.value = cam.far;
+			flow.uNear.value = cam.near;
+			flow.uFar.value = cam.far;
 
 			const previous = scene.overrideMaterial;
 			scene.overrideMaterial = normals;
@@ -202,6 +273,14 @@
 			renderer.setRenderTarget(null);
 			renderer.clear();
 			renderer.render(screen, screenCamera);
+
+			// pass 3: the gas flow, over the drawing (no clear in between)
+			const autoClear = renderer.autoClear;
+			renderer.autoClear = false;
+			cam.layers.set(FLOW_LAYER);
+			renderer.render(scene, cam);
+			cam.layers.set(0);
+			renderer.autoClear = autoClear;
 		},
 		{ stage: renderStage, autoInvalidate: false }
 	);
