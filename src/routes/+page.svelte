@@ -10,6 +10,7 @@
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { beforeNavigate } from '$app/navigation';
 	import HeroEngine from '#lib/mechanisms/engine/HeroEngine.svelte';
 	import {
 		STAGES,
@@ -26,6 +27,17 @@
 	const entry = $derived(data.systems.flatMap((s) => s.lessons).find((l) => l.available));
 
 	const tour = $state<TourState>({ progress: 0, still: false, running: false });
+
+	// Leaving for another page: stop the engine first. Where WebGL is drawn in
+	// software (no GPU), each running frame takes tens of milliseconds, and the
+	// next page's code has to run between those frames: a link click could
+	// take seconds to arrive. The page is going away, so nothing visible is lost.
+	let leaving = false;
+	beforeNavigate(({ to }) => {
+		if (to?.url.pathname === location.pathname) return;
+		leaving = true;
+		tour.running = false;
+	});
 
 	// `?fps` shows a frame-rate readout, for checking performance on a phone;
 	// it's only downloaded when asked for.
@@ -70,7 +82,7 @@
 		// The engine runs only while the tour is on screen (and motion is allowed),
 		// so it costs nothing while you read the rest of the page.
 		const seen = new IntersectionObserver(
-			([e]) => (tour.running = e.isIntersecting && !tour.still)
+			([e]) => (tour.running = e.isIntersecting && !tour.still && !leaving)
 		);
 		seen.observe(tourEl);
 		return () => {
