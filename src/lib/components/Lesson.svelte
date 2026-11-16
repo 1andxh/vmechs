@@ -19,12 +19,15 @@
 	let {
 		meta,
 		period,
+		angleLabel,
 		visual: Visual,
 		children
 	}: {
 		/** The lesson's frontmatter (mdsvex exposes it as `metadata`). */
 		meta: LessonMeta;
 		period: number;
+		/** What the driving value is, read out with the timeline (default "Crank angle"). */
+		angleLabel?: string;
 		visual: Component;
 		children: Snippet;
 	} = $props();
@@ -96,7 +99,7 @@
 	</div>
 
 	<Subtitle />
-	<Timeline />
+	<Timeline label={angleLabel} />
 </div>
 
 <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->

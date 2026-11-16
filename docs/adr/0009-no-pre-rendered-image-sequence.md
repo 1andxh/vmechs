@@ -4,6 +4,8 @@
 
 Accepted. Confirms ADR 0006 after testing an alternative to it.
 
+Corrected on 2026-11-16, the day it was written: the first version said the lessons are drawn by `InkRenderer` too. They are shaded; see ADR 0010.
+
 ## Context
 
 For the gearbox homepage, a pre-rendered route was considered, in the style of scroll-scrubbed product pages:
@@ -24,12 +26,12 @@ Freestyle was not clearly better, and the maintainer preferred the real-time dra
 
 ## Decision
 
-- The homepage and the lessons stay real-time, drawn by `InkRenderer` (ADR 0006).
+- The homepage stays real-time, drawn by `InkRenderer` (ADR 0006). The lessons stay real-time too.
 - No pre-rendered image sequence, and no Blender in the toolchain.
 
 ## Consequences
 
 - No 5 to 15 MB frame download, and the scene stays interactive and resolution-independent.
 - Detail is still limited by modelling in code, as ADR 0006 accepted.
-- The broken lines where surfaces nearly touch are a known `InkRenderer` weakness. They matter most in the gears lesson, where the contact between teeth is the subject, so they are worth fixing there.
+- The broken lines where surfaces nearly touch are a known `InkRenderer` weakness. They matter most where the homepage shows parts in contact, such as a gearbox's meshing teeth, so they are worth fixing before that.
 - Revisit only if a part needs detail that modelling in code can't reach, or measurements show phones can't run the real-time scene. Test with such a part, not a simple one: this test could not show Blender's advantage in detail.

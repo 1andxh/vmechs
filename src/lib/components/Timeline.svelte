@@ -1,5 +1,6 @@
 <!--
-	Play/pause plus a thin four-part timeline.
+	Play/pause plus a thin timeline, one part per step, each as wide as its
+	step is long, so the bars line up with the slider on top of them.
 	- The bars ARE the slider: a native range input sits on top of them, so
 	  dragging along the bars scrubs, and arrow keys work for free.
 	- The labels under the bars are buttons: clicking one plays that step once
@@ -11,8 +12,14 @@
 	import { activeStepIndex, stepProgress, type StepMeta } from '../content/steps.ts';
 	import { getLessonSteps } from './lesson-context.ts';
 
+	let {
+		label = 'Crank angle'
+	}: { /** What the driving value is, for screen readers. */ label?: string } = $props();
+
 	const cycle = getCycle();
 	const steps = getLessonSteps();
+	// e.g. "180fr 180fr 180fr 180fr": each step's share of the cycle
+	const columns = steps.map((s) => `minmax(0, ${s.to - s.from}fr)`).join(' ');
 	const active = $derived(activeStepIndex(steps, cycle.angle));
 
 	let reduced = $state(false);
@@ -56,7 +63,7 @@
 
 	<div class="track">
 		<div class="rail">
-			<div class="bars" aria-hidden="true">
+			<div class="bars" aria-hidden="true" style:grid-template-columns={columns}>
 				{#each steps as s, i (s.title)}
 					<span class="bar">
 						<span
@@ -75,12 +82,12 @@
 				value={cycle.angle}
 				disabled={!ready}
 				oninput={(e) => cycle.seek(+e.currentTarget.value)}
-				aria-label="Crank angle"
+				aria-label={label}
 				aria-valuetext="{Math.round(cycle.angle)}°, {steps[active]?.title ?? ''}"
 			/>
 		</div>
 
-		<div class="labels">
+		<div class="labels" style:grid-template-columns={columns}>
 			{#each steps as s, i (s.title)}
 				<button
 					type="button"
@@ -145,7 +152,6 @@
 		position: absolute;
 		inset: 11px 0 auto;
 		display: grid;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
 		gap: 4px;
 	}
 	.bar {
@@ -206,7 +212,6 @@
 
 	.labels {
 		display: grid;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
 		gap: 4px;
 	}
 	.labels button {
