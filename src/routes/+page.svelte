@@ -370,6 +370,9 @@
 		background: var(--surface);
 		transition: border-color 0.15s ease-out;
 	}
+	.feature + .feature {
+		margin-top: 20px;
+	}
 	.feature:hover,
 	.feature:focus-within {
 		border-color: var(--ink-3);
