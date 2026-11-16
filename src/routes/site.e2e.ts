@@ -71,10 +71,16 @@ test('landing: "Open now" links the open page, and the whole car shows what is r
 	const engine = car.getByRole('listitem').filter({ hasText: 'Engine' }).first();
 	await expect(engine).toContainText('1 of 5 open');
 	await expect(engine.getByRole('link', { name: 'Open Engine' })).toHaveAttribute('href', ARTICLE);
-	// Systems with nothing open yet say so in words, and offer no link.
 	const transmission = car.getByRole('listitem').filter({ hasText: 'Transmission' });
-	await expect(transmission).toContainText('5 on the way');
-	await expect(transmission.getByRole('link')).toHaveCount(0);
+	await expect(transmission).toContainText('1 of 5 open');
+	await expect(transmission.getByRole('link', { name: 'Open Transmission' })).toHaveAttribute(
+		'href',
+		'/learn/transmission/gears'
+	);
+	// Systems with nothing open yet say so in words, and offer no link.
+	const brakes = car.getByRole('listitem').filter({ hasText: 'Brakes' });
+	await expect(brakes).toContainText('2 on the way');
+	await expect(brakes.getByRole('link')).toHaveCount(0);
 });
 
 test('landing: fits a 320px phone with no console errors', async ({ page }) => {
