@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="430 40 572 357" width="572" height="357">
+	<!-- A car in side view, facing right. The picture starts mid-car, so the
+	     back half runs off the left edge. One smooth outline, no fill. -->
+	<g fill="none" stroke="#f4efe6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+		<!-- body -->
+		<path d="M70 290 C66 262 72 236 92 222 C130 200 190 192 250 188 C300 150 360 118 430 108 C500 98 590 98 640 110 C690 122 730 160 760 186 C820 196 880 204 920 214 C950 222 962 240 962 262 L960 292 C958 304 950 310 938 310 L824 310 A64 64 0 0 0 696 310 L314 310 A64 64 0 0 0 186 310 L92 310 C80 310 72 302 70 290 Z" />
+		<!-- glasshouse, B-pillar -->
+		<path d="M300 196 C340 160 390 128 440 120 C500 112 580 112 628 122 C664 132 694 158 716 182 Z" stroke-width="1.8" />
+		<path d="M520 114 L520 188" stroke-width="5" />
+		<!-- wheels: tyre, rim, hub -->
+		<circle cx="760" cy="300" r="54" />
+		<circle cx="760" cy="300" r="34" stroke-width="1.6" />
+		<circle cx="760" cy="300" r="5" fill="#f4efe6" stroke="none" />
+		<circle cx="250" cy="300" r="54" />
+		<circle cx="250" cy="300" r="34" stroke-width="1.6" />
+	</g>
+	<g fill="none" stroke="#8c8a86" stroke-width="1.4" stroke-linecap="round">
+		<!-- shut lines, sill, headlight, ground -->
+		<path d="M520 194 L520 300" />
+		<path d="M712 192 C718 236 716 270 704 300" />
+		<path d="M330 300 L690 300" />
+		<path d="M904 224 C926 228 942 234 952 246 L922 244 Z" />
+		<path d="M440 372 L1002 372" stroke-dasharray="14 4 2 4" />
+	</g>
+</svg>

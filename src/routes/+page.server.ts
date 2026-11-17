@@ -3,7 +3,7 @@ import { listArticles } from '#lib/server/articles.ts';
 import type { PageServerLoad } from './$types';
 
 /** A machine's picture, once it has one (static/covers/). */
-const COVERS: Record<string, string> = { car: '/covers/car.jpg' };
+const COVERS: Record<string, string> = { car: '/covers/car.svg' };
 
 // Runs at build time (the page is prerendered), so only this small summary
 // reaches the browser, never the lesson code.

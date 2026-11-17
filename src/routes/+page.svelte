@@ -162,7 +162,7 @@
 				<article class="machine">
 					<div class="pic">
 						{#if m.cover}
-							<img src={m.cover} alt="" width="900" height="704" loading="lazy" decoding="async" />
+							<img src={m.cover} alt="" width="572" height="357" loading="lazy" decoding="async" />
 						{:else}
 							<span>Drawing comes with its first page</span>
 						{/if}
@@ -534,6 +534,8 @@
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
+		/* a picture that runs off one edge stays attached to it */
+		object-position: left center;
 	}
 	.machine-text {
 		display: grid;
