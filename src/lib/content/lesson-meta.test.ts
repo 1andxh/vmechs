@@ -10,6 +10,7 @@ function valid(): LessonMeta {
 		summary: 'Intake, compression, power, exhaust.',
 		difficulty: 'Beginner',
 		order: 1,
+		published: '2026-11-13',
 		reviewed: '2026-11-14',
 		sources: [{ title: 'Internal Combustion Engine Fundamentals', author: 'J. B. Heywood' }],
 		simplifications: ['Valve timing is idealised.'],
@@ -43,6 +44,16 @@ describe('validateLessonMeta (the content standard, enforced)', () => {
 		);
 		expect(errorsFor({ reviewed: '2026-02-30' })).toContain(
 			'reviewed must be a date like 2026-11-14'
+		);
+	});
+
+	it('requires a real ISO publication date, not in the future and not after the review', () => {
+		expect(errorsFor({ published: '13 Nov 2026' })).toContain(
+			'published must be a date like 2026-11-13'
+		);
+		expect(errorsFor({ published: '2026-11-15' })).toContain('published date is in the future');
+		expect(errorsFor({ published: '2026-11-14', reviewed: '2026-11-13' })).toContain(
+			'published date is after the review date'
 		);
 	});
 

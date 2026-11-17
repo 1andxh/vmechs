@@ -5,6 +5,7 @@ summary: A small gear driving a big one turns it slower but harder. Watch two ge
 difficulty: Beginner
 order: 1
 cover: /covers/gears.jpg
+published: '2026-11-16'
 reviewed: '2026-11-16'
 sources:
   - title: ISO 53, Cylindrical gears for general and heavy engineering — Standard basic rack tooth profile

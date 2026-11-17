@@ -5,19 +5,26 @@ summary: Intake, compression, power, exhaust. Watch the piston, valves and crank
 difficulty: Beginner
 order: 1
 cover: /covers/four-stroke-cycle.jpg
-reviewed: '2026-11-14'
+published: '2026-11-13'
+reviewed: '2026-11-16'
 sources:
   - title: Internal Combustion Engine Fundamentals
     author: John B. Heywood
     publisher: McGraw-Hill
     year: 2018
-    note: The four-stroke cycle, and the crank–slider geometry behind the piston motion.
+    note: The four-stroke cycle, the crank–slider geometry behind the piston motion, and how long combustion takes.
   - title: Bosch Automotive Handbook
     author: Robert Bosch GmbH
     note: How petrol engines operate, including valve timing and ignition.
+  - title: 'Seventy-three percent of all light-duty vehicles produced in 2023 came with gasoline direct injection'
+    author: U.S. Department of Energy, Vehicle Technologies Office
+    year: 2024
+    url: https://www.energy.gov/eere/vehicles/articles/fotw-1331-february-26-2024-seventy-three-percent-all-light-duty-vehicles
+    note: How common direct injection, which sprays fuel straight into the cylinder, has become.
 simplifications:
   - Valve timing is idealised. Each valve opens and closes exactly at the top or bottom of the stroke; real engines open them early and close them late, with a brief overlap.
   - The spark always fires at the same point just before the top of the compression stroke. Real engines move that point with engine speed and load.
+  - Fuel arrives with the air, as in port-injected engines. Many newer engines spray it straight into the cylinder instead, so they draw in only air.
   - It's a single cylinder shown cut in half, and the gas colours show what the gas is doing, not its real colour or temperature.
 steps:
   - title: Intake
@@ -70,7 +77,7 @@ reaches the top, the **spark plug** fires.
 
 <Step n={3}>
 
-The mixture burns in a fraction of a millisecond. The hot gas expands violently and shoves the piston
+The mixture burns in a few thousandths of a second. The hot gas expands violently and shoves the piston
 down. This is the **only stroke that makes power**. The spinning crankshaft (and its heavy
 flywheel) carries the engine through the other three.
 

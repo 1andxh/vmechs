@@ -21,6 +21,8 @@ export interface LessonMeta {
 	summary: string;
 	difficulty: string;
 	order: number;
+	/** When the lesson went live, as YYYY-MM-DD; the homepage features the newest. */
+	published: string;
 	/** When the lesson was last checked against its sources, as YYYY-MM-DD. */
 	reviewed: string;
 	sources: Source[];
@@ -56,6 +58,14 @@ export function validateLessonMeta(meta: LessonMeta, today: string): string[] {
 		if (!src.title?.trim()) errors.push('every source needs a title');
 		if (src.url && !src.url.startsWith('https://'))
 			errors.push(`source "${src.title}" must link over https`);
+	}
+
+	if (!isIsoDate(meta.published ?? '')) {
+		errors.push('published must be a date like 2026-11-13');
+	} else if (meta.published > today) {
+		errors.push('published date is in the future');
+	} else if (isIsoDate(meta.reviewed ?? '') && meta.published > meta.reviewed) {
+		errors.push('published date is after the review date');
 	}
 
 	if (!isIsoDate(meta.reviewed ?? '')) {
