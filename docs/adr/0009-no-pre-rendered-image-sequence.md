@@ -4,6 +4,8 @@
 
 Accepted. Confirms ADR 0006 after testing an alternative to it.
 
+ADR 0011 briefly made the homepage text-first, with no WebGL. ADR 0012 brought the real-time engine back, so this decision stands.
+
 Corrected on 2026-11-16, the day it was written: the first version said the lessons are drawn by `InkRenderer` too. They are shaded; see ADR 0010.
 
 ## Context

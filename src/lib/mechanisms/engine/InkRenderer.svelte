@@ -19,6 +19,10 @@
 	so uncut near faces still hide them), and hatched at 45°, the drawing
 	convention for a cut surface. The solids must be closed for this to work.
 
+	Shade hatching: surfaces turned away from a light at the upper left get fine
+	lines on the other diagonal (−45°), and the darkest are cross-hatched, so the
+	form reads without any fill colour.
+
 	Pass 3 draws the gas flow (objects on FLOW_LAYER) on top, with its own
 	colours; it reads pass 1's depth to hide behind parts (see v8/flow.ts).
 
@@ -193,6 +197,24 @@
 				return cutAt(uv) * (1.0 - smoothstep(0.4 * uPx, 1.1 * uPx, gap));
 			}
 
+			// Lines of one direction (+1: 45°, −1: −45°), spacing device px apart.
+			float lines(float dir, float spacing) {
+				float along = fract((gl_FragCoord.x + dir * gl_FragCoord.y) / spacing);
+				float gap = min(along, 1.0 - along) * spacing;
+				return 1.0 - smoothstep(0.3 * uPx, 0.8 * uPx, gap);
+			}
+			// Shade hatching, as in a technical illustration: surfaces turned away
+			// from a light at the upper left get fine lines on the other diagonal
+			// from the cut faces; the darkest ones are cross-hatched.
+			float shade(vec2 uv) {
+				if (texture2D(tDepth, uv).x >= 1.0 || cutAt(uv) > 0.5) return 0.0;
+				float lit = dot(normalize(nrm(uv)), normalize(vec3(-0.45, 0.75, 0.5)));
+				float spacing = 5.0 * uPx * uWeight;
+				float away = 1.0 - smoothstep(-0.05, 0.12, lit);
+				float darkest = 1.0 - smoothstep(-0.5, -0.32, lit);
+				return max(lines(-1.0, spacing) * away, lines(1.0, spacing) * darkest);
+			}
+
 			bool empty(vec2 uv) { return texture2D(tDepth, uv).x >= 1.0; }
 
 			void main() {
@@ -221,7 +243,7 @@
 					* cutAt(vUv + o) * cutAt(vUv - o) * cutAt(vUv + vec2(o.x, -o.y)) * cutAt(vUv + vec2(-o.x, o.y));
 				heavy *= 1.0 - allCut;
 				float fine = crease(vUv, 0.5 * uPx * uWeight) * 0.7;
-				float line = max(max(heavy, fine), hatch(vUv) * 0.5);
+				float line = max(max(heavy, fine), max(hatch(vUv) * 0.5, shade(vUv) * 0.32));
 				bool solid = texture2D(tDepth, vUv).x < 1.0;
 				vec3 color = mix(uInk, uAccent, accentNear(vUv, 1.3 * uPx));
 				// paper inside the engine (so parts hide the ones behind), clear outside

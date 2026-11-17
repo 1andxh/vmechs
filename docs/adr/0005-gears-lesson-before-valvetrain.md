@@ -4,6 +4,8 @@
 
 Accepted. Changes which lesson ADR 0003 names as next; its rule on shared parts stands.
 
+The homepage gearbox mentioned below was dropped (ADRs 0011 and 0012); the lesson order stands.
+
 ## Context
 
 ADR 0003 named the valvetrain as the next lesson. Since then the homepage has become a running, exploded V8 (ADR 0006), and the next homepage direction chosen was a manual gearbox you shift through by scrolling. That direction teaches gear ratios: how a gear pair trades speed for torque.

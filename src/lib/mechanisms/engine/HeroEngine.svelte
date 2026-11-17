@@ -1,17 +1,17 @@
 <!--
 	The homepage's engine drawing, loaded lazily. It ignores the pointer
 	(pointer-events: none), so scrolling past it on a phone can't get stuck;
-	`tour` (scroll progress) is what moves it.
+	the parts list beside it is what you point at.
 -->
 <script lang="ts">
 	import LazyCanvas from '../../components/LazyCanvas.svelte';
-	import type { TourState } from './v8/explode.ts';
+	import type { SheetState } from './v8/sheet.ts';
 
-	let { tour }: { tour: TourState } = $props();
+	let { sheet }: { sheet: SheetState } = $props();
 </script>
 
 <div class="hero-engine">
-	<LazyCanvas load={() => import('./V8Canvas.svelte')} props={{ tour }} />
+	<LazyCanvas load={() => import('./V8Canvas.svelte')} props={{ sheet }} />
 </div>
 
 <style>

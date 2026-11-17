@@ -2,9 +2,9 @@
 
 ## Where vmechs is headed
 
-vmechs (virtual mechanics) teaches how cars work through interactive mechanisms you can play, pause, scrub and take apart. Today it has one polished lesson, the four-stroke engine, built on a calm "stage and subtitles" design. This roadmap covers what comes next: launching, helping people find lessons, growing the curriculum, features for each kind of reader, and a backend.
+vmechs (virtual mechanics) teaches how machines work through interactive mechanisms you can play, pause, scrub and take apart: cars first, then clocks and watches, simple machines and the mechanisms they share (ADR 0014). Today it has two lessons, the four-stroke engine and gears, built on a calm "stage and subtitles" design. This roadmap covers what comes next: launching, helping people find lessons, growing the curriculum, features for each kind of reader, and a backend.
 
-It's written for four kinds of readers:
+It's written for complete beginners and engineering students alike. For cars, that means four kinds of readers:
 
 - **Curious car owners** who want to understand their car
 - **Auto students** who need accurate, structured material
@@ -60,7 +60,7 @@ It's written for four kinds of readers:
 
 ## Phase 2: Second lesson as the architecture test
 
-- **Build the gears lesson next:** "Gears and gear ratios", how a gear pair trades speed for torque. The homepage's gearbox leads to it (ADR 0005). The valvetrain follows: camshaft, timing belt or chain, and valve overlap, which removes the four-stroke lesson's "idealised valve timing" caveat.
+- **Gears lesson: published.** "Gears and gear ratios", how a gear pair trades speed for torque (ADR 0005). The valvetrain is next: camshaft, timing belt or chain, and valve overlap, which removes the four-stroke lesson's "idealised valve timing" caveat.
 - **Then extract what genuinely repeats.** Write down which parts and patterns transferred from the first lesson, and turn only those into shared components. The shared kit grows from real lessons, never ahead of them.
 - **Lesson state grows only when a lesson needs it.** Today one driving angle drives everything. A fault demo or a side-by-side comparison will need more (a fault setting, two models), and that's the moment to generalise into a lesson-owned state object with named values.
 - **Low-end phones:** measure on weak devices and add a lighter fallback (simpler 3D or a 2D version) where the measurements show it's needed. Checking for WebGL support alone isn't enough.

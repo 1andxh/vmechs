@@ -20,74 +20,108 @@ async function openArticle(page: Page) {
 	await page.locator('.lesson[data-hydrated]').waitFor();
 }
 
+/**
+ * Open the homepage and wait until its engine drawing has drawn its first
+ * frame, or the page has settled on no WebGL. Where WebGL is drawn in
+ * software (CI), that first frame compiles the renderer's shaders and can hold
+ * the page for seconds; clicking during it is what made link tests flaky.
+ */
+async function openHome(page: Page) {
+	await page.goto('/');
+	await page
+		.locator('.sheet[data-drawn], .lazy[data-status="no-webgl"], .lazy[data-status="error"]')
+		.first()
+		.waitFor();
+}
+
 const slider = (page: Page) => page.getByRole('slider', { name: 'Crank angle' });
 const stepButton = (page: Page, name: string) => page.getByRole('button', { name, exact: true });
 
 test('home lists the four-stroke article and links to it', async ({ page }) => {
-	await page.goto('/');
-	await page.getByRole('link', { name: /how a four-stroke engine works/i }).click();
+	await openHome(page);
+	await page
+		.getByRole('region', { name: 'Open now' })
+		.getByRole('link', { name: /how a four-stroke engine works/i })
+		.click();
 	await expect(page).toHaveURL(ARTICLE);
 	await expect(page.getByRole('heading', { level: 1 })).toHaveText(/four-stroke/i);
 });
 
-test('landing: "See inside the engine" opens the engine page', async ({ page }) => {
-	await page.goto('/');
-	await page.getByRole('link', { name: /see inside the engine/i }).click();
+test('landing: a drawing sheet whose parts list leads to every engine page, open or on the way', async ({
+	page
+}) => {
+	await openHome(page);
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Look inside the machine.');
+	const parts = page.getByRole('list', { name: 'Parts of the engine' }).getByRole('listitem');
+	await expect(parts).toHaveCount(5);
+	// The open page is a link; the planned ones say they're on the way, and aren't links.
+	await expect(
+		parts.first().getByRole('link', { name: /pistons and crankshaft/i })
+	).toHaveAttribute('href', ARTICLE);
+	await expect(
+		page.getByRole('list', { name: 'Parts of the engine' }).getByRole('link')
+	).toHaveCount(1);
+	await expect(parts.nth(1)).toContainText('Valvetrain: camshaft and timing · on the way');
+	// The title block counts the whole plan, every machine and mechanism.
+	await expect(page.locator('.block')).toContainText('2 of 35');
+	// Pointing at a part lights it.
+	await parts.nth(1).hover();
+	await expect(parts.nth(1)).toHaveClass(/lit/);
+	// The drawing itself carries no numbers or labels.
+	await expect(page.locator('.draw a, .draw .pin')).toHaveCount(0);
+});
+
+test('landing: a part in the list opens its page', async ({ page }) => {
+	await openHome(page);
+	await page.getByRole('link', { name: /pistons and crankshaft/i }).click();
 	await expect(page).toHaveURL(ARTICLE);
 });
 
-test('landing: scrolling takes the engine apart part by part, then offers the way in', async ({
+test('landing: "Open now" features the newest page; machines and mechanisms show everything planned', async ({
 	page
 }) => {
 	await page.goto('/');
-	const tour = page.getByRole('region', { name: 'A V8 engine, taken apart' });
-	// The sentences are real text in reading order, so screen readers and
-	// browsers without WebGL get the same tour.
-	const text = (await tour.innerText()).replace(/\s+/g, ' ');
-	const order = [/intake/, /turbocharger/, /belt/, /cylinder heads/, /\brun\b/].map((w) =>
-		text.search(w)
-	);
-	expect(order.every((i) => i >= 0)).toBe(true);
-	expect([...order].sort((a, b) => a - b)).toEqual(order);
-
-	const run = tour.getByRole('link', { name: /see it run/i });
-	await run.scrollIntoViewIfNeeded();
-	await expect(run).toBeVisible();
-	await run.click();
-	await expect(page).toHaveURL(ARTICLE);
-});
-
-test('landing: "Open now" links the open page, and the whole car shows what is ready and coming', async ({
-	page
-}) => {
-	await page.goto('/');
-	const open = page.getByRole('region', { name: 'Open now' });
-	await expect(open.getByRole('link', { name: /how a four-stroke engine works/i })).toHaveAttribute(
-		'href',
-		ARTICLE
-	);
-
-	const car = page.getByRole('region', { name: 'The whole car' });
-	const engine = car.getByRole('listitem').filter({ hasText: 'Engine' }).first();
-	await expect(engine).toContainText('1 of 5 open');
-	await expect(engine.getByRole('link', { name: 'Open Engine' })).toHaveAttribute('href', ARTICLE);
-	const transmission = car.getByRole('listitem').filter({ hasText: 'Transmission' });
-	await expect(transmission).toContainText('1 of 5 open');
-	await expect(transmission.getByRole('link', { name: 'Open Transmission' })).toHaveAttribute(
+	// The newest page is featured first; the rest follow in a list.
+	const items = page.getByRole('region', { name: 'Open now' }).getByRole('article');
+	await expect(items).toHaveCount(2);
+	await expect(items.first()).toContainText('Newest');
+	await expect(items.first()).toContainText('Transmission · 5 steps');
+	await expect(items.first().getByRole('link', { name: 'Gears and gear ratios' })).toHaveAttribute(
 		'href',
 		'/learn/transmission/gears'
 	);
-	// Systems with nothing open yet say so in words, and offer no link.
-	const brakes = car.getByRole('listitem').filter({ hasText: 'Brakes' });
-	await expect(brakes).toContainText('2 on the way');
-	await expect(brakes.getByRole('link')).toHaveCount(0);
+	await expect(items.nth(1)).toContainText('Engine · 4 steps');
+	await expect(items.nth(1)).not.toContainText('Newest');
+	await expect(
+		items.nth(1).getByRole('link', { name: /how a four-stroke engine works/i })
+	).toHaveAttribute('href', ARTICLE);
+
+	// Machines: one card each, with its open pages as links.
+	const machines = page.getByRole('region', { name: 'Machines' });
+	const machine = (name: string) =>
+		machines.getByRole('article').filter({ has: page.getByRole('heading', { name, exact: true }) });
+	await expect(machines.getByRole('article')).toHaveCount(3);
+	await expect(machine('Car')).toContainText('2 open of 19 planned');
+	await expect(
+		machine('Car').getByRole('link', { name: /how a four-stroke engine works/i })
+	).toHaveAttribute('href', ARTICLE);
+	await expect(machine('Clocks and watches')).toContainText('4 planned');
+	await expect(machine('Clocks and watches').getByRole('link')).toHaveCount(0);
+	// Mechanisms: each says where it's found; one with an open page links to it.
+	const mechanisms = page.getByRole('region', { name: 'Mechanisms' });
+	const mech = (name: string) => mechanisms.getByRole('listitem').filter({ hasText: name });
+	await expect(mech('Gears and gear ratios').getByRole('link')).toHaveAttribute(
+		'href',
+		'/learn/transmission/gears'
+	);
+	await expect(mech('Gears and gear ratios')).toContainText('Found in Car, Clock, Bicycle');
+	await expect(mech('Escapement').getByRole('link')).toHaveCount(0);
 });
 
 test('landing: fits a 320px phone with no console errors', async ({ page }) => {
 	const errors = trackErrors(page);
 	await page.setViewportSize({ width: 320, height: 700 });
-	await page.goto('/');
-	await page.waitForTimeout(1000); // let the hero engine load and run
+	await openHome(page);
 	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320);
 	expect(errors).toEqual([]);
 });

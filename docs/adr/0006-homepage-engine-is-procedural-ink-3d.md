@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted, as amended by ADR 0012: the V8 and `InkRenderer` stay, but the scroll tour is replaced by a drawing sheet with pins. (ADR 0011 had removed them; ADR 0012 brought them back.)
 
 ## Context
 

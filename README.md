@@ -1,6 +1,6 @@
 # vmechs
 
-Interactive lessons on how cars work, from engines to transmissions to electronics. Each lesson is a 3D mechanism you can play, pause, scrub and take apart, with the explanation shown as short subtitles under the moving parts.
+Interactive lessons on how machines work: cars, clocks and watches, simple machines, and the mechanisms they share, such as gears, cams and springs. It's written for complete beginners and engineering students alike (ADR 0014). Each lesson is a 3D mechanism you can play, pause, scrub and take apart, with the explanation shown as short subtitles under the moving parts.
 
 ## Features
 

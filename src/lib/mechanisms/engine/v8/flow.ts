@@ -44,7 +44,8 @@ export function flowMaterial(shared: FlowShared, color: string): ShaderMaterial 
 		transparent: true,
 		depthTest: false,
 		depthWrite: false,
-		uniforms: { ...shared, uColor: { value: new Color(color) }, uSpacing: { value: 1.3 } },
+		// One streak every 2.6 units along a pipe: half as many as at first (1.3), which read as busy.
+		uniforms: { ...shared, uColor: { value: new Color(color) }, uSpacing: { value: 2.6 } },
 		vertexShader: /* glsl */ `
 			attribute float aDist;
 			varying float vDist;
@@ -66,8 +67,11 @@ export function flowMaterial(shared: FlowShared, color: string): ShaderMaterial 
 			varying float vDist;
 			varying float vViewZ;
 			void main() {
-				float phase = fract((vDist - uShift) / uSpacing);
-				float streak = smoothstep(0.0, 0.55, phase) * (1.0 - smoothstep(0.55, 0.62, phase));
+				// Distance along the pipe since this streak's tail. The streak's shape is
+				// in those units, so its length (0.8) stays the same whatever the spacing:
+				// a slow 0.7 fade-in to the bright head, then a sharp 0.1 cut-off.
+				float along = fract((vDist - uShift) / uSpacing) * uSpacing;
+				float streak = smoothstep(0.0, 0.7, along) * (1.0 - smoothstep(0.7, 0.8, along));
 				float d = texture2D(tDepth, gl_FragCoord.xy * uTexel).x;
 				float sceneZ = -(uNear * uFar) / ((uFar - uNear) * d - uFar);
 				float shown = 1.0 - smoothstep(0.5, 0.9, vViewZ - sceneZ);

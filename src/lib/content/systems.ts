@@ -1,13 +1,36 @@
 /**
- * The car's systems, in the order the homepage lists them, each with its
- * planned lessons in teaching order (see docs/ROADMAP.md). A planned lesson
- * becomes a link as soon as a lesson file with that category and slug exists.
- * Every lesson file must be planned here; buildSystemIndex throws otherwise.
+ * What vmechs covers (ADR 0014): machines (a car, a clock) and the mechanisms
+ * inside them (gears, cams, springs). Pages are planned in sections: the car
+ * has one per system, the other machines one each, and the mechanisms have
+ * their own. Each section's pages are in teaching order (see docs/ROADMAP.md).
+ * A planned page becomes a link as soon as a lesson file with that category
+ * and slug exists. Every lesson file must be planned here; buildSystemIndex
+ * throws otherwise.
  */
+
+/** The machines, in the order the homepage shows them. */
+export const MACHINES = [
+	{ id: 'car', name: 'Car', blurb: 'From the engine to the wheels, system by system.' },
+	{
+		id: 'clocks',
+		name: 'Clocks and watches',
+		blurb: 'How a spring and a swinging wheel keep time.'
+	},
+	{
+		id: 'simple-machines',
+		name: 'Simple machines',
+		blurb: 'The six classic building blocks inside every machine.'
+	}
+] as const;
+
+/** A machine's id, or 'mechanisms' for the section of mechanism pages. */
+export type Group = (typeof MACHINES)[number]['id'] | 'mechanisms';
 
 export interface SystemDef {
 	/** Matches a lesson's `category` and its folder under src/content/articles/. */
 	id: string;
+	/** The machine it belongs to, or 'mechanisms'. */
+	group: Group;
 	name: string;
 	blurb: string;
 	/** Future lessons, by the slug their file will have. */
@@ -23,16 +46,18 @@ export interface LessonListing {
 
 export interface SystemRow {
 	id: string;
+	group: Group;
 	name: string;
 	blurb: string;
 	/** How many of this system's lessons are published. */
 	available: number;
-	lessons: { title: string; href: string | null; available: boolean }[];
+	lessons: { slug: string; title: string; href: string | null; available: boolean }[];
 }
 
 export const SYSTEMS: SystemDef[] = [
 	{
 		id: 'engine',
+		group: 'car',
 		name: 'Engine',
 		blurb: 'Turns fuel into motion.',
 		planned: [
@@ -45,6 +70,7 @@ export const SYSTEMS: SystemDef[] = [
 	},
 	{
 		id: 'transmission',
+		group: 'car',
 		name: 'Transmission',
 		blurb: "Gets the engine's power to the wheels.",
 		planned: [
@@ -57,6 +83,7 @@ export const SYSTEMS: SystemDef[] = [
 	},
 	{
 		id: 'brakes',
+		group: 'car',
 		name: 'Brakes',
 		blurb: 'Slows and stops the car.',
 		planned: [
@@ -66,6 +93,7 @@ export const SYSTEMS: SystemDef[] = [
 	},
 	{
 		id: 'suspension-steering',
+		group: 'car',
 		name: 'Suspension and steering',
 		blurb: 'Keeps the tyres on the road and pointed where you want.',
 		planned: [
@@ -75,6 +103,7 @@ export const SYSTEMS: SystemDef[] = [
 	},
 	{
 		id: 'electrical',
+		group: 'car',
 		name: 'Electrical',
 		blurb: 'Starts the engine and powers everything else.',
 		planned: [
@@ -84,6 +113,7 @@ export const SYSTEMS: SystemDef[] = [
 	},
 	{
 		id: 'ev-hybrid',
+		group: 'car',
 		name: 'EVs and hybrids',
 		blurb: 'Electric motors, batteries, and engines that share the work.',
 		planned: [
@@ -91,6 +121,107 @@ export const SYSTEMS: SystemDef[] = [
 			{ slug: 'ev-battery', title: 'EV batteries' },
 			{ slug: 'hybrids', title: 'Hybrids' }
 		]
+	},
+	{
+		id: 'clocks-watches',
+		group: 'clocks',
+		name: 'Clocks and watches',
+		blurb: 'How a spring and a swinging wheel keep time.',
+		planned: [
+			{ slug: 'gear-train', title: 'The gear train' },
+			{ slug: 'escapement', title: 'The escapement' },
+			{ slug: 'mainspring', title: 'The mainspring' },
+			{ slug: 'balance-wheel', title: 'The balance wheel' }
+		]
+	},
+	{
+		id: 'simple-machines',
+		group: 'simple-machines',
+		name: 'Simple machines',
+		blurb: 'The six classic building blocks inside every machine.',
+		planned: [
+			{ slug: 'lever', title: 'The lever' },
+			{ slug: 'wheel-and-axle', title: 'The wheel and axle' },
+			{ slug: 'pulley', title: 'The pulley' },
+			{ slug: 'inclined-plane', title: 'The inclined plane' },
+			{ slug: 'wedge', title: 'The wedge' },
+			{ slug: 'screw', title: 'The screw' }
+		]
+	},
+	{
+		id: 'mechanisms',
+		group: 'mechanisms',
+		name: 'Mechanisms',
+		blurb: 'How motion is changed and passed on.',
+		planned: [
+			{ slug: 'crank-and-slider', title: 'Crank and slider' },
+			{ slug: 'cam-and-follower', title: 'Cam and follower' },
+			{ slug: 'belts-and-chains', title: 'Belts and chains' },
+			{ slug: 'springs', title: 'Springs' },
+			{ slug: 'linkages', title: 'Linkages' },
+			{ slug: 'ratchet-and-pawl', title: 'Ratchet and pawl' }
+		]
+	}
+];
+
+/**
+ * The mechanisms, each with the machines it's found in (plain labels: some,
+ * like bicycles, have no section yet) and the page that explains it. Gears and
+ * the escapement live in their machine's section; the rest in 'mechanisms'.
+ */
+export const MECHANISMS: {
+	id: string;
+	name: string;
+	foundIn: string[];
+	page: { section: string; slug: string };
+}[] = [
+	{
+		id: 'gears',
+		name: 'Gears and gear ratios',
+		foundIn: ['Car', 'Clock', 'Bicycle'],
+		page: { section: 'transmission', slug: 'gears' }
+	},
+	{
+		id: 'crank-and-slider',
+		name: 'Crank and slider',
+		foundIn: ['Car', 'Pump'],
+		page: { section: 'mechanisms', slug: 'crank-and-slider' }
+	},
+	{
+		id: 'cam-and-follower',
+		name: 'Cam and follower',
+		foundIn: ['Car', 'Lock'],
+		page: { section: 'mechanisms', slug: 'cam-and-follower' }
+	},
+	{
+		id: 'belts-and-chains',
+		name: 'Belts and chains',
+		foundIn: ['Car', 'Bicycle'],
+		page: { section: 'mechanisms', slug: 'belts-and-chains' }
+	},
+	{
+		id: 'escapement',
+		name: 'Escapement',
+		foundIn: ['Clock'],
+		page: { section: 'clocks-watches', slug: 'escapement' }
+	},
+	{
+		id: 'springs',
+		name: 'Springs',
+		foundIn: ['Clock', 'Car'],
+		page: { section: 'mechanisms', slug: 'springs' }
+	},
+	{
+		id: 'linkages',
+		name: 'Linkages',
+		foundIn: ['Car', 'Door closer'],
+		page: { section: 'mechanisms', slug: 'linkages' }
+	},
+	{
+		id: 'ratchet-and-pawl',
+		name: 'Ratchet and pawl',
+		foundIn: ['Bicycle', 'Clock'],
+		page: { section: 'mechanisms', slug: 'ratchet-and-pawl' }
 	}
 ];
 
@@ -123,15 +254,27 @@ export function buildSystemIndex(systems: SystemDef[], lessons: LessonListing[])
 		const entries = system.planned.map((p) => {
 			const lesson = bySlug.get(p.slug);
 			return lesson
-				? { title: lesson.title, href: href(lesson.slug), available: true }
-				: { title: p.title, href: null, available: false };
+				? { slug: p.slug, title: lesson.title, href: href(lesson.slug), available: true }
+				: { slug: p.slug, title: p.title, href: null, available: false };
 		});
 		return {
 			id: system.id,
+			group: system.group,
 			name: system.name,
 			blurb: system.blurb,
 			available: entries.filter((l) => l.available).length,
 			lessons: entries
 		};
 	});
+}
+
+/**
+ * The plan in three numbers, for the spec plate under the homepage headline:
+ * pages open now, systems in the plan, and planned pages still to come.
+ * Counted from the same rows as "The whole car", so the two always agree.
+ */
+export function planTotals(rows: SystemRow[]): { open: number; systems: number; coming: number } {
+	const open = rows.reduce((n, row) => n + row.available, 0);
+	const planned = rows.reduce((n, row) => n + row.lessons.length, 0);
+	return { open, systems: rows.length, coming: planned - open };
 }
