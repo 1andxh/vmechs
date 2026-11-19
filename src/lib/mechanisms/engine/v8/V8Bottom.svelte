@@ -7,6 +7,11 @@
 	import { T } from '@threlte/core';
 	import { onDestroy } from 'svelte';
 	import InkPart from '../InkPart.svelte';
+	import Tint from './Tint.svelte';
+	import { STRUCTURE } from '../../palette.ts';
+
+	/** The section plane's z, to cut the crankcase in colour mode too. */
+	let { clip = null }: { clip?: number | null } = $props();
 	import { makeShapes } from './shapes.ts';
 
 	const s = makeShapes();
@@ -58,9 +63,11 @@
 
 <!-- crankcase walls and oil pan: cut by the section plane -->
 <T.Group userData={{ section: true }}>
-	<InkPart geometry={wall} />
-	<InkPart geometry={wall} rotation={[0, Math.PI, 0]} />
-	<InkPart geometry={pan} />
+	<Tint color={STRUCTURE} {clip}>
+		<InkPart geometry={wall} />
+		<InkPart geometry={wall} rotation={[0, Math.PI, 0]} />
+		<InkPart geometry={pan} />
+	</Tint>
 </T.Group>
 
 <!-- Bellhousing at the back, with its bolt circle -->

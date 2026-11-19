@@ -23,6 +23,11 @@
 	lines on the other diagonal (−45°), and the darkest are cross-hatched, so the
 	form reads without any fill colour.
 
+	Colour mode (mode="colour", ADR 0015): a pass 0 first renders the scene
+	in its own colours and lighting; pass 2 then draws each line over it in a
+	darker shade of that part's colour (OUTLINE in palette.ts), with no shade
+	hatching. Ink mode, the default, is the plain drawing above.
+
 	Pass 3 draws the gas flow (objects on FLOW_LAYER) on top, with its own
 	colours; it reads pass 1's depth to hide behind parts (see v8/flow.ts).
 
@@ -32,10 +37,12 @@
 	import { useTask, useThrelte } from '@threlte/core';
 	import { onDestroy } from 'svelte';
 	import { FLOW_LAYER, getFlow } from './v8/flow.ts';
+	import { OUTLINE } from '../palette.ts';
 	import {
 		Color,
 		DepthTexture,
 		DoubleSide,
+		HalfFloatType,
 		Mesh,
 		Object3D,
 		OrthographicCamera,
@@ -51,14 +58,27 @@
 		ink = '#f4efe6',
 		accent = '#ffb46e',
 		paper = '#0a0a0b',
-		sectionZ = -1000
+		sectionZ = -1000,
+		mode = 'ink',
+		weight = 1
 	}: {
 		ink?: string;
 		accent?: string;
 		paper?: string;
 		/** The section plane's z; parts flagged `section` are removed in front of it. */
 		sectionZ?: number;
+		/**
+		 * 'ink': lines on plain paper (the homepage drawing). 'colour': the scene's
+		 * own colours and lighting, outlined in a darker shade of each part's
+		 * colour (ADR 0015; see palette.ts).
+		 */
+		mode?: 'ink' | 'colour';
+		/** Line weight, times the default: a lesson's model is drawn larger and wants heavier lines. */
+		weight?: number;
 	} = $props();
+	// A lesson's mode is fixed for its lifetime, so reading it once is intended.
+	// svelte-ignore state_referenced_locally
+	const colourMode = mode === 'colour';
 
 	const threlte = useThrelte();
 	const renderer = threlte.renderer as WebGLRenderer;
@@ -67,6 +87,8 @@
 	// ---- pass 1: normals (rgb) + flags (a), with a depth texture ----
 	// a = (2 × accent + cut face) / 3: 0 plain, ⅓ cut face, ⅔ accent, 1 both
 	const target = new WebGLRenderTarget(1, 1, { samples: 4, depthTexture: new DepthTexture(1, 1) });
+	// ---- pass 0 (colour mode only): the scene in its own colours and light ----
+	const colourTarget = new WebGLRenderTarget(1, 1, { samples: 4, type: HalfFloatType });
 	const flow = getFlow();
 	flow.tDepth.value = target.depthTexture;
 	const normals = new ShaderMaterial({
@@ -131,7 +153,10 @@
 			uFar: { value: 1000 },
 			uInk: { value: new Color() },
 			uAccent: { value: new Color() },
-			uPaper: { value: new Color() }
+			uPaper: { value: new Color() },
+			tScene: { value: colourTarget.texture },
+			uColourMode: { value: colourMode ? 1 : 0 },
+			uOutline: { value: OUTLINE }
 		},
 		vertexShader: /* glsl */ `
 			varying vec2 vUv;
@@ -147,6 +172,9 @@
 			uniform vec3 uInk;
 			uniform vec3 uAccent;
 			uniform vec3 uPaper;
+			uniform sampler2D tScene;
+			uniform float uColourMode;
+			uniform float uOutline;
 			varying vec2 vUv;
 
 			float viewZ(vec2 uv) {
@@ -243,8 +271,17 @@
 					* cutAt(vUv + o) * cutAt(vUv - o) * cutAt(vUv + vec2(o.x, -o.y)) * cutAt(vUv + vec2(-o.x, o.y));
 				heavy *= 1.0 - allCut;
 				float fine = crease(vUv, 0.5 * uPx * uWeight) * 0.7;
-				float line = max(max(heavy, fine), max(hatch(vUv) * 0.5, shade(vUv) * 0.32));
 				bool solid = texture2D(tDepth, vUv).x < 1.0;
+				if (uColourMode > 0.5) {
+					// colour mode: the part's own lit colour, outlined in a darker shade
+					// of it (shading does the work the hatching does in ink)
+					float edge = max(max(heavy, fine), hatch(vUv) * 0.5);
+					vec3 base = texture2D(tScene, vUv).rgb;
+					gl_FragColor = vec4(mix(base, base * uOutline, edge), max(edge, solid ? 1.0 : 0.0));
+					#include <colorspace_fragment>
+					return;
+				}
+				float line = max(max(heavy, fine), max(hatch(vUv) * 0.5, shade(vUv) * 0.32));
 				vec3 color = mix(uInk, uAccent, accentNear(vUv, 1.3 * uPx));
 				// paper inside the engine (so parts hide the ones behind), clear outside
 				float alpha = max(line, solid ? 1.0 : 0.0);
@@ -281,12 +318,17 @@
 			target.dispose(); // reallocated at the new sample count on next use
 		}
 		target.setSize(w, h);
+		if (colourMode) {
+			colourTarget.samples = samples;
+			colourTarget.setSize(w, h);
+		}
 		lines.uniforms.uTexel.value = [1 / w, 1 / h];
 		flow.uTexel.value = [1 / w, 1 / h];
 		lines.uniforms.uPx.value = ratio;
 		// Full weight from 1000 CSS px wide; down to 65% on a phone, where the
 		// engine is drawn much smaller and a full-weight line would swamp it.
-		lines.uniforms.uWeight.value = 0.65 + 0.35 * Math.min(1, Math.max(0, (width - 400) / 600));
+		lines.uniforms.uWeight.value =
+			weight * (0.65 + 0.35 * Math.min(1, Math.max(0, (width - 400) / 600)));
 		invalidate();
 	});
 
@@ -294,6 +336,7 @@
 	onDestroy(() => {
 		autoRender.set(true);
 		target.dispose();
+		colourTarget.dispose();
 		normals.dispose();
 		lines.dispose();
 		quad.geometry.dispose();
@@ -306,6 +349,13 @@
 			lines.uniforms.uFar.value = cam.far;
 			flow.uNear.value = cam.near;
 			flow.uFar.value = cam.far;
+
+			if (colourMode) {
+				renderer.setRenderTarget(colourTarget);
+				renderer.setClearColor(0x000000, 0);
+				renderer.clear();
+				renderer.render(scene, cam);
+			}
 
 			const previous = scene.overrideMaterial;
 			scene.overrideMaterial = normals;

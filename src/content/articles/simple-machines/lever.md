@@ -4,6 +4,10 @@ category: simple-machines
 summary: A bar and a pivot let a small push lift a heavy load. Watch a lever trade distance for force, and meet its three classes.
 difficulty: Beginner
 order: 1
+parts:
+  fulcrum: gold
+  load: blue
+  effort: green
 cover: /covers/lever.jpg
 published: '2026-11-19'
 reviewed: '2026-11-19'

@@ -4,6 +4,12 @@ category: engine
 summary: Intake, compression, power, exhaust. Watch the piston, valves and crankshaft move through the cycle that powers almost every petrol car.
 difficulty: Beginner
 order: 1
+parts:
+  intake valve: blue
+  exhaust valve: slate
+  piston: green
+  connecting rod: gold
+  crankshaft: red
 cover: /covers/four-stroke-cycle.jpg
 published: '2026-11-13'
 reviewed: '2026-11-16'

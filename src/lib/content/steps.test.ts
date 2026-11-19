@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { activeStepIndex, parseEmphasis, stepProgress, type StepMeta } from './steps';
+import {
+	activeStepIndex,
+	highlightColour,
+	parseEmphasis,
+	stepProgress,
+	type StepMeta
+} from './steps';
 
 const steps: StepMeta[] = [
 	{ title: 'Intake', from: 0, to: 180, subtitle: '' },
@@ -50,5 +56,19 @@ describe('stepProgress (how full a timeline segment is)', () => {
 	it('is 0 before the step and 1 after it', () => {
 		expect(stepProgress(steps[2], 100)).toBe(0);
 		expect(stepProgress(steps[2], 600)).toBe(1);
+	});
+});
+
+describe('highlightColour (a highlighted word that names a part takes its colour)', () => {
+	const parts = { piston: 'green', 'intake valve': 'blue' } as const;
+
+	it("gives a part's name that part's colour, whatever its capitals", () => {
+		expect(highlightColour('piston', parts)).toBe('green');
+		expect(highlightColour('Intake valve', parts)).toBe('blue');
+	});
+
+	it('leaves other highlighted words to the accent colour', () => {
+		expect(highlightColour('squeezes', parts)).toBeNull();
+		expect(highlightColour('piston', undefined)).toBeNull();
 	});
 });

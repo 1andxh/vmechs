@@ -16,5 +16,6 @@
 <Canvas dpr={[1, 2]}>
 	<V8Scene {sheet} />
 	<!-- pointing at the pistons cuts the block open to show them -->
-	<InkRenderer sectionZ={sectionZ(sheet.active === 'internals' ? 1 : 0)} />
+	<!-- colour-coded parts, outlined in a darker shade of their colour (ADR 0015) -->
+	<InkRenderer mode="colour" weight={1.3} sectionZ={sectionZ(1)} />
 </Canvas>

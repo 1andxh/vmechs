@@ -4,6 +4,9 @@ category: transmission
 summary: A small gear driving a big one turns it slower but harder. Watch two gears mesh and see how a gear ratio trades speed for torque.
 difficulty: Beginner
 order: 1
+parts:
+  small gear: green
+  big gear: blue
 cover: /covers/gears.jpg
 published: '2026-11-16'
 reviewed: '2026-11-16'

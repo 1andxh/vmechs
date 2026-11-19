@@ -17,7 +17,10 @@
 <script lang="ts">
 	import { T, useTask, useThrelte } from '@threlte/core';
 	import type { PerspectiveCamera } from 'three';
-	import { VIEW, type SheetState } from './v8/sheet.ts';
+	import { PARTS, VIEW, type Part, type SheetState } from './v8/sheet.ts';
+	import { PARTS as PALETTE, STRUCTURE } from '../palette.ts';
+	import { sectionZ } from './v8/internals.ts';
+	import Tint from './v8/Tint.svelte';
 	import { BANKS } from './v8/frame.ts';
 	import V8Bank from './v8/V8Bank.svelte';
 	import V8Bottom from './v8/V8Bottom.svelte';
@@ -32,7 +35,18 @@
 	let { sheet }: { sheet: SheetState } = $props();
 	const active = $derived(sheet.active);
 
-	const { size, invalidate } = useThrelte();
+	const { size, invalidate, renderer } = useThrelte();
+	// the section cut is also applied to the coloured surfaces, as a clipping plane
+	renderer.localClippingEnabled = true;
+
+	// Each part in its colour (ADR 0015); pointing at one keeps it in colour and
+	// turns the rest warm grey. The block is always cut open, so the pistons and
+	// crankshaft (green) show and all five colours of the key are on the drawing.
+	const colourOf = (part: Part) =>
+		active && active !== part
+			? STRUCTURE
+			: PALETTE[PARTS.find((p) => p.part === part)!.colour].fill;
+	const clip = sectionZ(1);
 
 	// The engine clock: a slow display speed, so you can follow each piston.
 	// (A real V8 idles at 600 to 800 rpm, too fast to see.)
@@ -80,19 +94,32 @@
 	}}
 />
 
-<V8Bottom />
+<!-- soft and even, like a studio (ADR 0015) -->
+<T.HemisphereLight args={['#fffaf2', '#8a8580', 1.6]} />
+<T.DirectionalLight position={[-14, 24, -18]} intensity={1.4} color="#fff6ea" />
+<T.DirectionalLight position={[16, 8, 14]} intensity={0.5} />
+
+<V8Bottom {clip} />
 <T.Group userData={{ ink: active === 'internals' }}>
-	<V8Internals {crank} />
+	<Tint color={colourOf('internals')}>
+		<V8Internals {crank} />
+	</Tint>
 </T.Group>
 {#each BANKS as bank (bank.name)}
-	<V8Bank {bank} accent={active === 'heads'} />
+	<V8Bank {bank} accent={active === 'heads'} headColour={colourOf('heads')} {clip} />
 	<T.Group userData={{ ink: active === 'turbos' }}>
-		<V8Turbo {bank} {crank} />
+		<Tint color={colourOf('turbos')}>
+			<V8Turbo {bank} {crank} />
+		</Tint>
 	</T.Group>
 {/each}
 <T.Group userData={{ ink: active === 'intake' }}>
-	<V8Intake />
+	<Tint color={colourOf('intake')}>
+		<V8Intake />
+	</Tint>
 </T.Group>
 <T.Group userData={{ ink: active === 'front' }}>
-	<V8FrontDrive {crank} />
+	<Tint color={colourOf('front')}>
+		<V8FrontDrive {crank} />
+	</Tint>
 </T.Group>

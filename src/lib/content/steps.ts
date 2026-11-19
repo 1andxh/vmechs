@@ -31,6 +31,20 @@ export function parseEmphasis(s: string): Segment[] {
 	return out;
 }
 
+/**
+ * The part colour for a highlighted word, if the word names one of the
+ * lesson's parts (ADR 0015): the text shows a part in the part's own colour.
+ * Matching ignores capitals. Any other highlighted word gets null (the accent).
+ */
+export function highlightColour<C extends string>(
+	word: string,
+	parts: Readonly<Record<string, C>> | undefined
+): C | null {
+	if (!parts) return null;
+	const key = Object.keys(parts).find((k) => k.toLowerCase() === word.trim().toLowerCase());
+	return key ? parts[key] : null;
+}
+
 /** Index of the step whose [from, to) contains `angle`, or -1. */
 export function activeStepIndex(steps: StepMeta[], angle: number): number {
 	return steps.findIndex((s) => angle >= s.from && angle < s.to);

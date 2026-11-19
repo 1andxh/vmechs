@@ -78,6 +78,8 @@
 					<li
 						class:on={part.page.available}
 						class:lit={sheet.active === part.part}
+						style:--part="var(--part-{part.colour})"
+						style:--part-text="var(--part-{part.colour}-text)"
 						onpointerenter={point(part.part)}
 						onpointerleave={point(null)}
 					>
@@ -311,18 +313,16 @@
 		place-items: center;
 		width: 26px;
 		height: 26px;
-		border: 1px solid var(--ink-3);
+		/* the list is the drawing's key: each number in its part's colour (ADR 0015) */
+		border: 2px solid var(--part);
 		border-radius: 50%;
 		font-size: 12px;
-		color: var(--ink-2);
-	}
-	.parts li.on b {
-		border-color: var(--accent);
-		background: var(--accent);
-		color: #1a1206;
+		font-weight: 650;
+		color: var(--part-text);
 	}
 	.parts li.lit b {
-		border-color: var(--accent);
+		background: var(--part);
+		color: var(--ink);
 	}
 	.parts a {
 		text-decoration: none;
@@ -396,25 +396,29 @@
 	.item {
 		position: relative;
 	}
+	/* the newest page: words on the left, its picture on the right, nothing over it */
 	.feat {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+		align-items: center;
 		overflow: hidden;
 		border: 1px solid var(--line);
 		border-radius: 16px;
+		/* the paper colour, so the picture (shot on paper) has no seam */
+		background: var(--bg);
 		transition: border-color 0.15s ease-out;
 	}
 	.feat img {
+		order: 2;
 		display: block;
 		width: 100%;
 		height: auto;
-		aspect-ratio: 16 / 7;
+		aspect-ratio: 4 / 3;
 		object-fit: cover;
 		object-position: 50% 45%;
 	}
 	.feat-text {
-		position: absolute;
-		inset: auto 0 0;
-		padding: 120px 36px 32px;
-		background: linear-gradient(to top, var(--bg) 35%, transparent);
+		padding: 32px 0 32px 36px;
 	}
 	.tag {
 		display: inline-block;
@@ -696,13 +700,14 @@
 			padding: 56px 20px 32px;
 		}
 		/* on a phone the text goes under the picture, so it doesn't hide it */
+		.feat {
+			grid-template-columns: minmax(0, 1fr);
+		}
 		.feat img {
-			aspect-ratio: 4 / 3;
+			order: 0;
 		}
 		.feat-text {
-			position: static;
 			padding: 4px 20px 22px;
-			background: none;
 		}
 		.item {
 			grid-template-columns: 88px minmax(0, 1fr);

@@ -21,11 +21,11 @@
 	/>
 	<dl class="readout" aria-label="The numbers">
 		<div>
-			<dt>Effort</dt>
+			<dt class="effort">Effort</dt>
 			<dd>{n(now.effort)} N</dd>
 		</div>
 		<div>
-			<dt>Load</dt>
+			<dt class="load">Load</dt>
 			<dd>{n(now.load)} N</dd>
 		</div>
 		<div>
@@ -63,6 +63,13 @@
 	}
 	.readout dt {
 		color: var(--ink-3);
+	}
+	/* the forces' names in their parts' colours, like the arrows (ADR 0015) */
+	.readout dt.effort {
+		color: var(--part-green-text);
+	}
+	.readout dt.load {
+		color: var(--part-blue-text);
 	}
 	.readout dd {
 		margin: 0;

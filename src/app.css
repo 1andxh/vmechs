@@ -1,37 +1,50 @@
 /*
- * Design tokens: direction "D2 · Subtitles".
- * A dark stage with one warm spotlight. Text is warm white, and a single
- * amber highlight marks the one thing that matters right now.
- * Dark-only by design; there is no light theme.
+ * Design tokens: warm light pages and colour-coded machines (ADR 0015).
+ * Warm paper and dark warm ink. Inside a lesson, each part has its own
+ * colour; a word that names the part is set in the darker text shade of the
+ * same colour. Every text colour passes WCAG AA on --bg.
  */
 :root {
-	/* Stage */
-	--bg: #0a0a0b;
-	--spot: rgba(255, 240, 220, 0.045); /* faint warmth behind the engine; no visible edge */
-	--surface: #141415; /* sheets and panels that slide over the stage */
-	--surface-2: #1c1c1e;
-	--line: #2c2b29;
+	/* Page */
+	--bg: #f5f1ea; /* warm paper */
+	--surface: #fbf9f5; /* cards, sheets */
+	--surface-2: #ece6dc;
+	--line: #e0d9cd;
 
-	/* Text: all pass WCAG AA on --bg */
-	--ink: #f4f1ec; /* subtitles, headings */
-	--ink-2: #bdb9b2; /* secondary */
-	--ink-3: #8c8a86; /* tertiary: step counter, labels */
+	/* Text: all pass WCAG AA on --bg (ink 14.4, ink-2 6.9, ink-3 4.8 : 1) */
+	--ink: #23201c;
+	--ink-2: #57524b;
+	--ink-3: #6f695f;
 
-	/* The one highlight colour: the key word in a subtitle, the active part */
-	--accent: #ffb46e;
+	/* The brand's one highlight: links, the current step (4.6 : 1) */
+	--accent: #b4500e;
+	--on-accent: #ffffff; /* text on an accent fill */
+
+	/* Part colours: a bright fill for the 3D part, a darker shade for words that name it */
+	--part-red: #e5484d;
+	--part-red-text: #c42d33;
+	--part-green: #3fa35a;
+	--part-green-text: #2a7a40;
+	--part-blue: #3d7ad6;
+	--part-blue-text: #2c62b4;
+	--part-gold: #e2b33c;
+	--part-gold-text: #8f6400;
+	--part-slate: #748190; /* a cool grey: smoke, exhaust */
+	--part-slate-text: #525d69;
+	--part-grey: #c4bdb2; /* structure: blocks, heads, housings */
 
 	/* Stroke colours, used only in the detail sheet's cycle chart */
-	--intake: #6fa8dc;
-	--compression: #e8c46a;
-	--power: #ff8a4c;
-	--exhaust: #a495d6;
+	--intake: #2c62b4;
+	--compression: #8f6400;
+	--power: #c42d33;
+	--exhaust: #525d69; /* slate, like the exhaust valve */
 
 	--font: 'Archivo Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 	/* Headlines set wide, like the badge or spec plate on a car. */
 	--display-stretch: 118%;
 	--mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
-	color-scheme: dark;
+	color-scheme: light;
 }
 
 *,

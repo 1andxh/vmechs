@@ -277,6 +277,20 @@ test.describe('with reduced motion', () => {
 		await expect(page.getByText('drives the piston down')).toBeVisible();
 	});
 
+	test("a highlighted word that names a part is shown in the part's colour", async ({ page }) => {
+		await openArticle(page);
+		const word = () => page.locator('.subtitle .hl');
+		await stepButton(page, 'Intake').click();
+		await expect(word()).toHaveText('intake valve');
+		await expect(word()).toHaveCSS('color', 'rgb(44, 98, 180)'); // blue, like the valve
+		await stepButton(page, 'Power').click();
+		await expect(word()).toHaveText('piston');
+		await expect(word()).toHaveCSS('color', 'rgb(42, 122, 64)'); // green, like the piston
+		await stepButton(page, 'Compression').click();
+		await expect(word()).toHaveText('squeezes');
+		await expect(word()).toHaveCSS('color', 'rgb(180, 80, 14)'); // not a part: the accent
+	});
+
 	test('the subtitle follows the playhead when scrubbing', async ({ page }) => {
 		await openArticle(page);
 		await slider(page).fill('600');

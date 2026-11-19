@@ -46,29 +46,20 @@ export const PARTS: readonly Part[] = [
 ];
 
 /**
- * WebGL can't read CSS variables, so the 3D scene uses these.
- * Keep `accent`, `hot` and `hotDeep` in sync with app.css.
+ * WebGL can't read CSS variables, so the 3D scene uses these. The parts'
+ * own colours come from palette.ts (ADR 0015); these are the gas, the light
+ * and the selection glow.
  */
 export const COLORS = {
-	// Materials
-	block: '#3a3633', // cast-iron block, dark warm grey
-	head: '#2c2927',
-	alu: '#c9ccd0', // piston
-	steel: '#9da1a6', // valves, pins, main journal
-	darkSteel: '#4a4d52', // rod, crank webs
-	port: '#1c1a19',
-	plug: '#e8e2d8', // spark-plug insulator
-
-	// Light
-	key: '#fff0dc', // the spotlight
-	rim: '#ffd9b0', // back light that outlines the silhouette
+	// The spark plug's ceramic insulator
+	plug: '#f4f1ec',
 
 	// Gas, by what it's doing
-	air: '#b9c6d3',
-	flash: '#fff2d6',
-	hot: '#ffb46e',
+	air: '#9fc3e6',
+	flash: '#ffd27a',
+	hot: '#ffa95c',
 	hotDeep: '#e0552e',
-	smoke: '#6f6a66',
+	smoke: '#8a8f96',
 
 	// Selection
 	accent: '#ffb46e'

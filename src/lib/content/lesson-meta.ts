@@ -4,6 +4,7 @@
  * test suite, so a lesson that breaks the standard fails CI.
  */
 import type { StepMeta } from './steps.ts';
+import { PARTS, type PartColour } from '../mechanisms/palette.ts';
 
 export interface Source {
 	title: string;
@@ -28,6 +29,11 @@ export interface LessonMeta {
 	sources: Source[];
 	/** Where the lesson departs from real engines, stated plainly. */
 	simplifications: string[];
+	/**
+	 * The machine's parts and their colours (ADR 0015), by the name the text
+	 * uses: a highlighted word naming a part is shown in that part's colour.
+	 */
+	parts?: Record<string, PartColour>;
 	/** A still of the lesson for listings, served from static/covers/. */
 	cover?: string;
 	steps: StepMeta[];
@@ -72,6 +78,12 @@ export function validateLessonMeta(meta: LessonMeta, today: string): string[] {
 		errors.push('reviewed must be a date like 2026-11-14');
 	} else if (meta.reviewed > today) {
 		errors.push('reviewed date is in the future');
+	}
+
+	const colours = Object.keys(PARTS);
+	for (const [part, colour] of Object.entries(meta.parts ?? {})) {
+		if (!colours.includes(colour))
+			errors.push(`part "${part}" has colour "${colour}"; use one of ${colours.join(', ')}`);
 	}
 
 	if (meta.cover !== undefined && !/^\/covers\/[\w-]+\.(jpg|png|webp)$/.test(meta.cover)) {

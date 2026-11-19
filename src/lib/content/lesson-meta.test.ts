@@ -114,6 +114,13 @@ describe('validateLessonMeta (the content standard, enforced)', () => {
 		);
 	});
 
+	it('takes an optional list of parts and their colours, from the machine palette', () => {
+		expect(errorsFor({ parts: { piston: 'green', 'intake valve': 'blue' } })).toEqual([]);
+		expect(errorsFor({ parts: { piston: 'purple' as never } })).toContain(
+			'part "piston" has colour "purple"; use one of red, green, blue, gold, slate'
+		);
+	});
+
 	it('takes an optional cover image, served from /covers/', () => {
 		expect(errorsFor({ cover: '/covers/four-stroke-cycle.jpg' })).toEqual([]);
 		expect(errorsFor({ cover: 'https://example.com/a.jpg' })).toContain(

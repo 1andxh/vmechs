@@ -7,11 +7,17 @@
 	import { onMount } from 'svelte';
 	import { fade } from 'svelte/transition';
 	import { getCycle } from '../animation/cycle.svelte.ts';
-	import { activeStepIndex, parseEmphasis } from '../content/steps.ts';
-	import { getLessonSteps } from './lesson-context.ts';
+	import { activeStepIndex, highlightColour, parseEmphasis } from '../content/steps.ts';
+	import { getLessonParts, getLessonSteps } from './lesson-context.ts';
 
 	const cycle = getCycle();
 	const steps = getLessonSteps();
+	const parts = getLessonParts();
+	/** A highlighted word naming a part is shown in the part's text colour (ADR 0015). */
+	const colourOf = (word: string) => {
+		const c = highlightColour(word, parts);
+		return c ? `var(--part-${c}-text)` : undefined;
+	};
 
 	const i = $derived(activeStepIndex(steps, cycle.angle));
 	const step = $derived(steps[i]);
@@ -28,7 +34,8 @@
 			{#if step}
 				<p class="where">{step.title} · step {i + 1} of {steps.length}</p>
 				<p class="line">
-					{#each segments as s, k (k)}{#if s.hl}<span class="hl">{s.text}</span
+					{#each segments as s, k (k)}{#if s.hl}<span class="hl" style:color={colourOf(s.text)}
+								>{s.text}</span
 							>{:else}{s.text}{/if}{/each}
 				</p>
 			{/if}

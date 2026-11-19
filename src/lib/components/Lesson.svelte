@@ -12,7 +12,7 @@
 	import { CycleState, setCycle } from '../animation/cycle.svelte.ts';
 	import type { LessonMeta } from '../content/lesson-meta.ts';
 	import { reportMistakeUrl } from '../site.ts';
-	import { setLessonSteps, setSheet } from './lesson-context.ts';
+	import { setLessonParts, setLessonSteps, setSheet } from './lesson-context.ts';
 	import Subtitle from './Subtitle.svelte';
 	import Timeline from './Timeline.svelte';
 
@@ -34,11 +34,12 @@
 
 	// A lesson's frontmatter and period are fixed for its lifetime, so reading them once is intended.
 	// svelte-ignore state_referenced_locally
-	const { title, steps } = meta;
+	const { title, steps, parts = {} } = meta;
 	// svelte-ignore state_referenced_locally
 	const cycle = new CycleState(period);
 	setCycle(cycle);
 	setLessonSteps(steps);
+	setLessonParts(parts);
 
 	const reviewed = $derived(
 		new Date(`${meta.reviewed}T00:00:00Z`).toLocaleDateString('en-GB', {
@@ -163,9 +164,7 @@
 		   content's min width (the no-wrap title), pushing the page past phone width. */
 		grid-template-columns: minmax(0, 1fr);
 		grid-template-rows: auto minmax(320px, 1fr) auto auto;
-		background:
-			radial-gradient(ellipse 60% 80% at 50% 38%, var(--spot), rgba(255, 240, 220, 0) 100%),
-			var(--bg);
+		background: var(--bg);
 	}
 
 	.bar {
@@ -374,11 +373,6 @@
 	}
 
 	@media (max-width: 640px) {
-		.lesson {
-			background:
-				radial-gradient(ellipse 100% 60% at 50% 36%, var(--spot), rgba(255, 240, 220, 0) 100%),
-				var(--bg);
-		}
 		.bar {
 			padding: 8px 12px 8px 16px;
 		}

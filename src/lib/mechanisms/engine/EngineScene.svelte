@@ -13,7 +13,7 @@
 <script lang="ts">
 	import { T, useThrelte } from '@threlte/core';
 	import { HTML, OrbitControls, interactivity } from '@threlte/extras';
-	import { AdditiveBlending, DoubleSide, NormalBlending, PMREMGenerator } from 'three';
+	import { DoubleSide, NormalBlending, PMREMGenerator } from 'three';
 	import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 	import { getCycle } from '../../animation/cycle.svelte.ts';
 	import {
@@ -25,6 +25,7 @@
 		wrapCycle
 	} from './kinematics.ts';
 	import { COLORS, PARTS, type PartId } from './parts.ts';
+	import { PARTS as PALETTE, STRUCTURE } from '../palette.ts';
 
 	let {
 		selected = null,
@@ -42,7 +43,7 @@
 		const pmrem = new PMREMGenerator(renderer);
 		const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 		scene.environment = env;
-		scene.environmentIntensity = 0.35;
+		scene.environmentIntensity = 0.6;
 		invalidate();
 		return () => {
 			scene.environment = null;
@@ -52,6 +53,15 @@
 	});
 
 	// --- fixed dimensions -------------------------------------------------
+	// Each part's colour (ADR 0015): the valves match the gas they let through.
+	const PART = {
+		piston: PALETTE.green.fill,
+		rod: PALETTE.gold.fill,
+		crank: PALETTE.red.fill,
+		intakeValve: PALETTE.blue.fill,
+		exhaustValve: PALETTE.slate.fill
+	};
+
 	const BORE_R = 1.1; // cylinder radius
 	const PISTON_H = 1.1;
 	const PIN_TO_CROWN = 0.55; // wrist pin sits this far below the piston top
@@ -77,8 +87,8 @@
 	const sparking = $derived(wrapCycle(deg) > 345 && wrapCycle(deg) < 372);
 
 	// Gas in the chamber: colour and strength say what it's doing right now.
-	// `glow` gases add light (additive blending); air and smoke just tint, because
-	// grey added to near-black barely changes anything.
+	// On the light page every gas tints (normal blending); `glow` gases also
+	// light the metal around them.
 	const gasH = $derived(HEAD_Y - crownY);
 	const gas = $derived.by(() => {
 		const t = (wrapCycle(deg) % 180) / 180; // progress through this stroke, 0..1
@@ -141,18 +151,10 @@
 	/>
 </T.PerspectiveCamera>
 
-<!-- Lighting: one warm key from above (aimed at the origin), a faint rim from behind, almost no ambient. -->
-<T.AmbientLight intensity={0.2} />
-<T.SpotLight
-	position={[2.5, 16, 7]}
-	angle={0.42}
-	penumbra={0.9}
-	decay={0}
-	intensity={3.4}
-	color={COLORS.key}
-/>
-<T.DirectionalLight position={[-5, 7, -8]} intensity={1.6} color={COLORS.rim} />
-<T.DirectionalLight position={[-6, 3, 8]} intensity={0.2} />
+<!-- Lighting: soft and even, like a studio (ADR 0015): a sky/ground fill and one gentle key. -->
+<T.HemisphereLight args={['#fffaf2', '#8a8580', 1.6]} />
+<T.DirectionalLight position={[-4, 8, 6]} intensity={1.4} color="#fff6ea" />
+<T.DirectionalLight position={[5, 2, -4]} intensity={0.5} />
 
 <!-- Cylinder: back half only, so we can see inside (cutaway) -->
 <T.Mesh position.y={(2 + HEAD_Y) / 2} {...handlers('cylinder')}>
@@ -160,10 +162,10 @@
 		args={[BORE_R + 0.02, BORE_R + 0.02, HEAD_Y - 2, 48, 1, true, Math.PI / 2, Math.PI]}
 	/>
 	<T.MeshStandardMaterial
-		color={COLORS.block}
+		color={STRUCTURE}
 		side={DoubleSide}
-		metalness={0.3}
-		roughness={0.7}
+		metalness={0.05}
+		roughness={0.6}
 		emissive={COLORS.accent}
 		emissiveIntensity={glow('cylinder')}
 	/>
@@ -178,7 +180,7 @@
 			transparent
 			opacity={gas.opacity}
 			depthWrite={false}
-			blending={gas.glow ? AdditiveBlending : NormalBlending}
+			blending={NormalBlending}
 		/>
 	</T.Mesh>
 {/if}
@@ -197,8 +199,8 @@
 <T.Mesh position.y={HEAD_Y + 0.3}>
 	<T.BoxGeometry args={[2.9, 0.6, 2.6]} />
 	<T.MeshStandardMaterial
-		color={COLORS.head}
-		metalness={0.3}
+		color={'#e2dbd0'}
+		metalness={0.05}
 		roughness={0.6}
 		transparent
 		opacity={0.4}
@@ -210,9 +212,9 @@
 <T.Mesh position.y={crownY - PISTON_H / 2} {...handlers('piston')}>
 	<T.CylinderGeometry args={[BORE_R - 0.04, BORE_R - 0.04, PISTON_H, 48]} />
 	<T.MeshStandardMaterial
-		color={COLORS.alu}
-		metalness={0.75}
-		roughness={0.32}
+		color={PART.piston}
+		metalness={0.05}
+		roughness={0.6}
 		emissive={COLORS.accent}
 		emissiveIntensity={glow('piston')}
 	/>
@@ -220,16 +222,16 @@
 <!-- Wrist pin -->
 <T.Mesh position.y={wristY} rotation.x={Math.PI / 2}>
 	<T.CylinderGeometry args={[0.16, 0.16, 1.6, 20]} />
-	<T.MeshStandardMaterial color={COLORS.steel} metalness={0.8} roughness={0.3} />
+	<T.MeshStandardMaterial color={PART.rod} metalness={0.05} roughness={0.6} />
 </T.Mesh>
 
 <!-- Connecting rod -->
 <T.Mesh position={[rodMid.x, rodMid.y, 0]} rotation.z={rodTilt} {...handlers('rod')}>
 	<T.BoxGeometry args={[0.32, rodLen, 0.28]} />
 	<T.MeshStandardMaterial
-		color={COLORS.darkSteel}
-		metalness={0.8}
-		roughness={0.38}
+		color={PART.rod}
+		metalness={0.05}
+		roughness={0.6}
 		emissive={COLORS.accent}
 		emissiveIntensity={glow('rod')}
 	/>
@@ -241,9 +243,9 @@
 	<T.Mesh rotation.x={Math.PI / 2}>
 		<T.CylinderGeometry args={[0.32, 0.32, 2.4, 28]} />
 		<T.MeshStandardMaterial
-			color={COLORS.steel}
-			metalness={0.8}
-			roughness={0.3}
+			color={PART.crank}
+			metalness={0.05}
+			roughness={0.6}
 			emissive={COLORS.accent}
 			emissiveIntensity={glow('crank')}
 		/>
@@ -253,9 +255,9 @@
 		<T.Mesh position={[0, 0.15, z]}>
 			<T.BoxGeometry args={[0.7, 1.9, 0.18]} />
 			<T.MeshStandardMaterial
-				color={COLORS.darkSteel}
-				metalness={0.75}
-				roughness={0.4}
+				color={PART.crank}
+				metalness={0.05}
+				roughness={0.6}
 				emissive={COLORS.accent}
 				emissiveIntensity={glow('crank')}
 			/>
@@ -263,9 +265,9 @@
 		<T.Mesh position={[0, -0.75, z]} rotation.x={Math.PI / 2}>
 			<T.CylinderGeometry args={[0.85, 0.85, 0.18, 32, 1, false, Math.PI / 2, Math.PI]} />
 			<T.MeshStandardMaterial
-				color={COLORS.darkSteel}
-				metalness={0.75}
-				roughness={0.4}
+				color={PART.crank}
+				metalness={0.05}
+				roughness={0.6}
 				emissive={COLORS.accent}
 				emissiveIntensity={glow('crank')}
 			/>
@@ -275,9 +277,9 @@
 	<T.Mesh position.y={ENGINE.crankRadius} rotation.x={Math.PI / 2}>
 		<T.CylinderGeometry args={[0.24, 0.24, 1.0, 24]} />
 		<T.MeshStandardMaterial
-			color={COLORS.steel}
-			metalness={0.8}
-			roughness={0.3}
+			color={PART.crank}
+			metalness={0.05}
+			roughness={0.6}
 			emissive={COLORS.accent}
 			emissiveIntensity={glow('crank')}
 		/>
@@ -290,9 +292,9 @@
 		<T.Mesh position.y={0.04}>
 			<T.CylinderGeometry args={[VALVE_R, VALVE_R * 0.75, 0.1, 32]} />
 			<T.MeshStandardMaterial
-				color={COLORS.steel}
-				metalness={0.8}
-				roughness={0.35}
+				color={PART[v.id]}
+				metalness={0.05}
+				roughness={0.6}
 				emissive={COLORS.accent}
 				emissiveIntensity={glow(v.id)}
 			/>
@@ -300,9 +302,9 @@
 		<T.Mesh position.y={STEM_LEN / 2}>
 			<T.CylinderGeometry args={[0.06, 0.06, STEM_LEN, 12]} />
 			<T.MeshStandardMaterial
-				color={COLORS.steel}
-				metalness={0.8}
-				roughness={0.35}
+				color={PART[v.id]}
+				metalness={0.05}
+				roughness={0.6}
 				emissive={COLORS.accent}
 				emissiveIntensity={glow(v.id)}
 			/>
@@ -312,9 +314,9 @@
 	<T.Mesh position={[v.x * 2.2, HEAD_Y + 0.75, 0]} rotation.z={v.x < 0 ? 0.9 : -0.9}>
 		<T.CylinderGeometry args={[0.3, 0.3, 1.5, 20, 1, true]} />
 		<T.MeshStandardMaterial
-			color={COLORS.port}
-			metalness={0.3}
-			roughness={0.7}
+			color={'#b9b1a5'}
+			metalness={0.05}
+			roughness={0.6}
 			transparent
 			opacity={0.6}
 			side={DoubleSide}
@@ -329,14 +331,14 @@
 		<T.CylinderGeometry args={[0.14, 0.14, 1.6, 16]} />
 		<T.MeshStandardMaterial
 			color={COLORS.plug}
-			roughness={0.55}
+			roughness={0.6}
 			emissive={COLORS.accent}
 			emissiveIntensity={glow('sparkPlug')}
 		/>
 	</T.Mesh>
 	<T.Mesh position.y={0.05}>
 		<T.SphereGeometry args={[sparking ? 0.22 : 0.06, 16, 16]} />
-		<T.MeshBasicMaterial color={sparking ? COLORS.flash : COLORS.darkSteel} />
+		<T.MeshBasicMaterial color={sparking ? COLORS.flash : '#57524b'} />
 	</T.Mesh>
 	{#if sparking}
 		<T.PointLight position.y={-0.2} color={COLORS.flash} intensity={10} distance={4} />
@@ -355,7 +357,7 @@
 		padding: 4px 11px;
 		border: 1px solid var(--line);
 		border-radius: 999px;
-		background: rgba(20, 20, 21, 0.86);
+		background: rgba(251, 249, 245, 0.92);
 		color: var(--ink);
 		font: 500 13px/1.4 var(--font);
 		white-space: nowrap;

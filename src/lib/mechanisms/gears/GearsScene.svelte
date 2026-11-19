@@ -6,8 +6,8 @@
 	Each gear is a body plus one mesh per tooth (pieces.ts), so a single tooth
 	can be highlighted. Which parts are highlighted depends on the step.
 
-	Drawn shaded, like the four-stroke lesson (ADR 0010): lit dark metal, with
-	the highlighted parts glowing in the accent colour.
+	Drawn in colour (ADR 0015): the driver green, the driven gear blue, the
+	teeth a step points at in gold; matte, softly lit, outlined by InkRenderer.
 
 	Coordinates: z up; the gears lie in the xy plane, the driver's centre at
 	the origin and the driven gear's on +x.
@@ -22,6 +22,7 @@
 	import { centreDistance, meshAngle, pitchRadius } from './gears.ts';
 	import { PAIR, contactTeeth } from './pair.ts';
 	import { gearSolids } from './solid.ts';
+	import { PARTS, STRUCTURE } from '../palette.ts';
 
 	const cycle = getCycle();
 	const steps = getLessonSteps();
@@ -30,7 +31,9 @@
 	const ARC = 4; // segments per tooth along the cut between teeth and body
 	const a = centreDistance(z1, z2, m);
 
-	const ACCENT = '#ffb46e';
+	// the driver, the driven gear, and the teeth a step points at (ADR 0015)
+	const GEAR = [PARTS.green.fill, PARTS.blue.fill];
+	const TOOTH = PARTS.gold.fill;
 
 	// ---- geometry, built once ----
 	type P = [number, number];
@@ -104,9 +107,15 @@
 				return [none, none];
 		}
 	});
-	/** How strongly a part glows: a whole gear lit at full strength would swamp the scene. */
-	const glowOf = (g: number, k: number | null) =>
-		lit[g].whole ? 0.25 : k !== null && lit[g].teeth.includes(k) ? 0.6 : 0;
+	/**
+	 * A part's colour: a pointed-at tooth is gold. When a step is about one
+	 * gear only (the big one, for torque), the other steps back to structure grey.
+	 */
+	const colourOf = (g: number, k: number | null) => {
+		if (k !== null && lit[g].teeth.includes(k)) return TOOTH;
+		const otherAlone = lit[1 - g].whole && !lit[g].whole && !lit[g].teeth.length;
+		return otherAlone ? STRUCTURE : GEAR[g];
+	};
 
 	// ---- camera: fit the pair's width on any screen ----
 	const { size, renderer, scene, invalidate } = useThrelte();
@@ -136,7 +145,7 @@
 		const pmrem = new PMREMGenerator(renderer);
 		const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 		scene.environment = env;
-		scene.environmentIntensity = 0.35;
+		scene.environmentIntensity = 0.6;
 		invalidate();
 		return () => {
 			scene.environment = null;
@@ -156,35 +165,22 @@
 	oncreate={(c) => c.lookAt(...TARGET)}
 />
 
-<!-- as in the four-stroke lesson: a warm key from above, a faint rim behind -->
-<T.AmbientLight intensity={0.2} />
-<T.SpotLight
-	position={[a / 2 - 10, -20, 60]}
-	angle={0.5}
-	penumbra={0.9}
-	decay={0}
-	intensity={3.4}
-	color="#fff0dc"
-/>
-<T.DirectionalLight position={[a / 2 + 30, 40, 20]} intensity={1.6} color="#ffd9b0" />
+<!-- soft and even, like a studio (ADR 0015) -->
+<T.HemisphereLight args={['#fffaf2', '#8a8580', 1.6]} />
+<T.DirectionalLight position={[-20, -30, 60]} intensity={1.4} color="#fff6ea" />
+<T.DirectionalLight position={[40, 30, 20]} intensity={0.5} />
 
-{#snippet part(geometry: BufferGeometry, glow: number, rotation = 0)}
+{#snippet part(geometry: BufferGeometry, color: string, rotation = 0)}
 	<T.Mesh {geometry} rotation.z={rotation}>
-		<T.MeshStandardMaterial
-			color="#4a4d52"
-			metalness={0.7}
-			roughness={0.35}
-			emissive={ACCENT}
-			emissiveIntensity={glow}
-		/>
+		<T.MeshStandardMaterial {color} metalness={0.05} roughness={0.6} />
 	</T.Mesh>
 {/snippet}
 
 {#each gears as gear, g (g)}
 	<T.Group position={gear.centre} rotation.z={turns[g]}>
-		{@render part(gear.body, glowOf(g, null))}
+		{@render part(gear.body, colourOf(g, null))}
 		{#each { length: gear.z }, k (k)}
-			{@render part(gear.tooth, glowOf(g, k), (2 * Math.PI * k) / gear.z)}
+			{@render part(gear.tooth, colourOf(g, k), (2 * Math.PI * k) / gear.z)}
 		{/each}
 	</T.Group>
 {/each}
