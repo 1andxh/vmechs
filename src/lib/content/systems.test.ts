@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
 	buildSystemIndex,
 	planTotals,
+	openPages,
 	MACHINES,
 	MECHANISMS,
 	SYSTEMS,
@@ -126,5 +127,22 @@ describe('the catalogue: machines, their sections, and mechanisms (ADR 0014)', (
 
 	it('says where each mechanism is found', () => {
 		for (const m of MECHANISMS) expect(m.foundIn.length, m.id).toBeGreaterThan(0);
+	});
+});
+
+describe('openPages (the links on the error page)', () => {
+	it('names each existing lesson by its planned title, in plan order', () => {
+		const refs = [
+			{ category: 'transmission', slug: 'gears' },
+			{ category: 'engine', slug: 'four-stroke-cycle' }
+		];
+		expect(openPages(systems, refs)).toEqual([
+			{ title: 'How a four-stroke engine works', href: '/learn/engine/four-stroke-cycle' },
+			{ title: 'Gears and gear ratios', href: '/learn/transmission/gears' }
+		]);
+	});
+
+	it('leaves out a file that is not in the plan', () => {
+		expect(openPages(systems, [{ category: 'engine', slug: 'not-planned' }])).toEqual([]);
 	});
 });

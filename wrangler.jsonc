@@ -6,6 +6,8 @@
 	"name": "vmechs",
 	"compatibility_date": "2026-11-14",
 	"assets": {
-		"directory": "./build"
+		"directory": "./build",
+		// Unknown addresses get build/404.html, with a 404 status.
+		"not_found_handling": "404-page"
 	}
 }

@@ -15,7 +15,10 @@
 </script>
 
 <div class="lever">
-	<LazyCanvas load={() => import('./LeverCanvas.svelte')} />
+	<LazyCanvas
+		load={() => import('./LeverCanvas.svelte')}
+		label="The lever, in 3D. The subtitles describe each step."
+	/>
 	<dl class="readout" aria-label="The numbers">
 		<div>
 			<dt>Effort</dt>

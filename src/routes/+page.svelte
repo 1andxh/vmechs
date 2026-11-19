@@ -10,6 +10,7 @@
 	import { beforeNavigate } from '$app/navigation';
 	import HeroEngine from '#lib/mechanisms/engine/HeroEngine.svelte';
 	import { PARTS, type Part, type SheetState } from '#lib/mechanisms/engine/v8/sheet.ts';
+	import PageMeta from '#lib/components/PageMeta.svelte';
 	import { planTotals } from '#lib/content/systems.ts';
 	import type { PageProps } from './$types';
 
@@ -48,13 +49,12 @@
 	});
 </script>
 
-<svelte:head>
-	<title>vmechs · How machines actually work</title>
-	<meta
-		name="description"
-		content="How machines actually work, taken apart and set in motion: engines, gears, clocks, simple machines and more, as interactive 3D you can explore."
-	/>
-</svelte:head>
+<PageMeta
+	title=""
+	description="How machines actually work, taken apart and set in motion: engines, gears, clocks, simple machines and more, as interactive 3D you can explore."
+	path="/"
+	image="/covers/four-stroke-cycle.jpg"
+/>
 
 <section class="sheet" aria-labelledby="sheet-title" data-drawn={sheet.drawn || undefined}>
 	<header class="bar">
@@ -221,7 +221,7 @@
 
 	<footer class="foot">
 		<span class="wordmark">vmechs</span>
-		<span>How machines actually work · © 2026</span>
+		<span><a href="/about">About</a> · How machines actually work · © 2026</span>
 	</footer>
 </div>
 
@@ -673,6 +673,12 @@
 	.wordmark {
 		font-size: 18px;
 		color: var(--ink-2);
+	}
+	.foot a {
+		color: var(--ink-2);
+	}
+	.foot a:hover {
+		color: var(--accent);
 	}
 
 	@media (max-width: 860px) {

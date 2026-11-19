@@ -131,6 +131,88 @@ test('landing: "Open now" features the newest page; machines and mechanisms show
 	await expect(mech('Escapement').getByRole('link')).toHaveCount(0);
 });
 
+test('the About page says what vmechs is, how accuracy works, and how to report a mistake', async ({
+	page
+}) => {
+	await page.goto('/');
+	await page.getByRole('link', { name: 'About', exact: true }).click();
+	await expect(page).toHaveURL('/about');
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+		'Machines are easier to understand when you can watch them move.'
+	);
+	for (const h of [
+		'Who it’s for',
+		'How a page works',
+		'How accuracy is handled',
+		'Spotted a mistake?'
+	])
+		await expect(page.getByRole('heading', { level: 2, name: h })).toBeVisible();
+	// the report link opens the repo's issue form
+	await expect(page.getByRole('link', { name: 'Report a mistake' })).toHaveAttribute(
+		'href',
+		/\/issues\/new\?template=report-a-mistake\.yml$/
+	);
+	await expect(page.getByText('It never diagnoses a fault')).toBeVisible();
+});
+
+test('the 3D views have a text alternative for screen readers', async ({ page }) => {
+	await openHome(page);
+	await expect(page.getByRole('img', { name: /a twin-turbo V8, running/i })).toBeVisible();
+	await page.goto(LEVER);
+	await page.locator('.lesson[data-hydrated]').waitFor();
+	await expect(
+		page.getByRole('img', { name: 'The lever, in 3D. The subtitles describe each step.' })
+	).toBeVisible();
+	// the lever's numbers stay outside the picture, so they can still be read
+	await expect(page.getByRole('term').first()).toHaveText('Effort');
+});
+
+test('every page tells search engines and link previews what it is', async ({ page }) => {
+	const head = async (path: string) => {
+		await page.goto(path);
+		const attr = (sel: string, a: string) => page.locator(sel).first().getAttribute(a);
+		return {
+			canonical: await attr('link[rel="canonical"]', 'href'),
+			image: await attr('meta[property="og:image"]', 'content'),
+			title: await attr('meta[property="og:title"]', 'content'),
+			description: await attr('meta[name="description"]', 'content')
+		};
+	};
+	// a lesson shares its own cover, at a full address
+	const lever = await head(LEVER);
+	expect(lever.canonical).toMatch(/^https:\/\/.+\/learn\/simple-machines\/lever$/);
+	expect(lever.image).toMatch(/^https:\/\/.+\/covers\/lever\.jpg$/);
+	expect(lever.title).toBe('The lever');
+	expect(lever.description).toContain('A bar and a pivot');
+	// the homepage and About have their own titles and descriptions too
+	for (const path of ['/', '/about']) {
+		const h = await head(path);
+		expect(h.canonical, path).toMatch(/^https:\/\//);
+		expect(h.image, path).toMatch(/^https:\/\/.+\.jpg$/);
+		expect(h.description, path).toBeTruthy();
+	}
+});
+
+test('the sitemap lists every page, and robots.txt points to it', async ({ request }) => {
+	const xml = await (await request.get('/sitemap.xml')).text();
+	for (const path of ['/', '/about', ARTICLE, '/learn/transmission/gears', LEVER])
+		expect(xml, path).toMatch(new RegExp(`<loc>https://[^<]+${path.replace(/\//g, '\\/')}</loc>`));
+	expect(xml.match(/<url>/g)).toHaveLength(5);
+	expect(await (await request.get('/robots.txt')).text()).toMatch(
+		/^Sitemap: https:\/\/.+\/sitemap\.xml$/m
+	);
+});
+
+test('an unknown address says so, with a 404 status and a way back', async ({ page }) => {
+	const response = await page.goto('/no-such-page');
+	expect(response?.status()).toBe(404);
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText("This page isn't here.");
+	// the way back, and the open pages, one click away
+	const home = page.getByRole('link', { name: 'Back to the start' });
+	await expect(home).toHaveAttribute('href', '/');
+	await expect(page.getByRole('link', { name: 'The lever' })).toHaveAttribute('href', LEVER);
+});
+
 test('landing: fits a 320px phone with no console errors', async ({ page }) => {
 	const errors = trackErrors(page);
 	await page.setViewportSize({ width: 320, height: 700 });
@@ -227,10 +309,13 @@ test.describe('with reduced motion', () => {
 		await expect(open).toHaveAttribute('aria-expanded', 'false');
 	});
 
-	test('"Watch this stroke" closes the sheet and plays that step on stage', async ({ page }) => {
+	test('"Watch this step" closes the sheet and plays that step on stage', async ({ page }) => {
 		await openArticle(page);
 		await page.getByRole('button', { name: 'All 4 steps' }).click();
-		await page.getByRole('button', { name: 'Watch this stroke' }).nth(3).click();
+		// each button names its step, so a screen reader can tell them apart
+		const watch = page.getByRole('dialog').getByRole('button', { name: /^Watch / });
+		await expect(watch).toHaveText(Array(4).fill('Watch this step'));
+		await page.getByRole('button', { name: 'Watch this step: Exhaust', exact: true }).click();
 		await expect(page.getByRole('dialog')).toBeHidden();
 		await expect(slider(page)).toHaveValue('630');
 	});

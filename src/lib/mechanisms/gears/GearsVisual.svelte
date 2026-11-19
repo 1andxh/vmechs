@@ -4,7 +4,10 @@
 </script>
 
 <div class="gears">
-	<LazyCanvas load={() => import('./GearsCanvas.svelte')} />
+	<LazyCanvas
+		load={() => import('./GearsCanvas.svelte')}
+		label="Two gears in mesh, in 3D. The subtitles describe each step."
+	/>
 </div>
 
 <style>

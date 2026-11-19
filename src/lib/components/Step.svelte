@@ -33,7 +33,11 @@
 		{#if current}<span class="now">On stage now</span>{/if}
 	</h2>
 	{@render children()}
-	<button type="button" onclick={play}>Watch this stroke</button>
+	<!-- the name adds the step, so the buttons can be told apart; it starts with
+	     the visible words, so voice control can find it by what it says -->
+	<button type="button" onclick={play} aria-label="Watch this step: {meta.title}"
+		>Watch this step</button
+	>
 </section>
 
 <style>

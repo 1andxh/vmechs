@@ -11,7 +11,11 @@
 </script>
 
 <div class="engine">
-	<LazyCanvas load={() => import('./EngineCanvas.svelte')} props={{ selected, onselect }} />
+	<LazyCanvas
+		load={() => import('./EngineCanvas.svelte')}
+		props={{ selected, onselect }}
+		label="One cylinder of a four-stroke engine, cut in half, in 3D. The subtitles describe each step."
+	/>
 </div>
 
 <style>

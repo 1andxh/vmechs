@@ -11,7 +11,11 @@
 </script>
 
 <div class="hero-engine">
-	<LazyCanvas load={() => import('./V8Canvas.svelte')} props={{ sheet }} />
+	<LazyCanvas
+		load={() => import('./V8Canvas.svelte')}
+		props={{ sheet }}
+		label="A twin-turbo V8, running, drawn in ink. The list beside it names its parts."
+	/>
 </div>
 
 <style>

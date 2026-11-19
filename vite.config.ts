@@ -11,7 +11,9 @@ export default defineConfig({
 				runes: ({ filename }) =>
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
-			adapter: adapter(),
+			// 404.html: a page that boots the app for any unknown address, which then shows
+			// the error page. Cloudflare serves it with a 404 status (wrangler.jsonc).
+			adapter: adapter({ fallback: '404.html' }),
 			preprocess: [mdsvex({ extensions: ['.svx', '.md'] })],
 			extensions: ['.svelte', '.svx', '.md']
 		})

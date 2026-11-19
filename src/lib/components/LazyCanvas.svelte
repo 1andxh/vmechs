@@ -9,11 +9,14 @@
 	let {
 		load,
 		fallback,
-		props = {}
+		props = {},
+		label
 	}: {
 		load: () => Promise<{ default: Component<any> }>;
 		fallback?: Snippet;
 		props?: Record<string, unknown>;
+		/** What the 3D view shows, for screen readers (it becomes an image with this name). */
+		label?: string;
 	} = $props();
 
 	let el: HTMLDivElement;
@@ -53,7 +56,13 @@
 	});
 </script>
 
-<div class="lazy" bind:this={el} data-status={status}>
+<div
+	class="lazy"
+	bind:this={el}
+	data-status={status}
+	role={label ? 'img' : undefined}
+	aria-label={label}
+>
 	{#if Scene}
 		<Scene {...props} />
 	{:else if status === 'no-webgl' || status === 'error'}

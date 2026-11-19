@@ -278,3 +278,19 @@ export function planTotals(rows: SystemRow[]): { open: number; systems: number; 
 	const planned = rows.reduce((n, row) => n + row.lessons.length, 0);
 	return { open, systems: rows.length, coming: planned - open };
 }
+
+/**
+ * The lessons that exist, as links named by their planned titles, in plan
+ * order. Client-safe (no frontmatter needed), for places that can't load the
+ * full listing, such as the error page.
+ */
+export function openPages(
+	systems: SystemDef[],
+	refs: { category: string; slug: string }[]
+): { title: string; href: string }[] {
+	return systems.flatMap((s) =>
+		s.planned
+			.filter((p) => refs.some((r) => r.category === s.id && r.slug === p.slug))
+			.map((p) => ({ title: p.title, href: `/learn/${s.id}/${p.slug}` }))
+	);
+}
