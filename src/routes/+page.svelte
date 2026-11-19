@@ -162,7 +162,15 @@
 				<article class="machine">
 					<div class="pic">
 						{#if m.cover}
-							<img src={m.cover} alt="" width="600" height="150" loading="lazy" decoding="async" />
+							<img
+								src={m.cover.src}
+								class:drawing={m.cover.src.endsWith('.svg')}
+								alt=""
+								width={m.cover.width}
+								height={m.cover.height}
+								loading="lazy"
+								decoding="async"
+							/>
 						{:else}
 							<span>Drawing comes with its first page</span>
 						{/if}
@@ -525,6 +533,8 @@
 		display: grid;
 		place-items: center;
 		aspect-ratio: 16 / 10;
+		/* clip, so a picture can't stretch the box past its ratio */
+		overflow: hidden;
 		background: var(--bg);
 		font-size: 13px;
 		color: var(--ink-3);
@@ -533,7 +543,11 @@
 		display: block;
 		width: 100%;
 		height: 100%;
-		/* the whole drawing, centred, with room around it */
+		/* a still from a lesson fills the card (its edges are empty stage) */
+		object-fit: cover;
+	}
+	/* a line drawing is shown whole, centred, with room around it */
+	.machine .pic img.drawing {
 		object-fit: contain;
 		padding: 0 8%;
 	}

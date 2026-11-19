@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
 const ARTICLE = '/learn/engine/four-stroke-cycle';
+const LEVER = '/learn/simple-machines/lever';
 
 /** Collect console errors and uncaught exceptions for the whole test. */
 function trackErrors(page: Page): string[] {
@@ -63,7 +64,7 @@ test('landing: a drawing sheet whose parts list leads to every engine page, open
 	).toHaveCount(1);
 	await expect(parts.nth(1)).toContainText('Valvetrain: camshaft and timing · on the way');
 	// The title block counts the whole plan, every machine and mechanism.
-	await expect(page.locator('.block')).toContainText('2 of 35');
+	await expect(page.locator('.block')).toContainText('3 of 35');
 	// Pointing at a part lights it.
 	await parts.nth(1).hover();
 	await expect(parts.nth(1)).toHaveClass(/lit/);
@@ -83,17 +84,19 @@ test('landing: "Open now" features the newest page; machines and mechanisms show
 	await page.goto('/');
 	// The newest page is featured first; the rest follow in a list.
 	const items = page.getByRole('region', { name: 'Open now' }).getByRole('article');
-	await expect(items).toHaveCount(2);
+	// Newest first, by publication date: the lever, then gears, then the four-stroke engine.
+	await expect(items).toHaveCount(3);
 	await expect(items.first()).toContainText('Newest');
-	await expect(items.first()).toContainText('Transmission · 5 steps');
-	await expect(items.first().getByRole('link', { name: 'Gears and gear ratios' })).toHaveAttribute(
+	await expect(items.first()).toContainText('Simple machines · 5 steps');
+	await expect(items.first().getByRole('link', { name: 'The lever' })).toHaveAttribute(
 		'href',
-		'/learn/transmission/gears'
+		LEVER
 	);
-	await expect(items.nth(1)).toContainText('Engine · 4 steps');
-	await expect(items.nth(1)).not.toContainText('Newest');
+	await expect(items.nth(1)).toContainText('Transmission · 5 steps');
+	await expect(items.nth(2)).toContainText('Engine · 4 steps');
+	await expect(items.nth(2)).not.toContainText('Newest');
 	await expect(
-		items.nth(1).getByRole('link', { name: /how a four-stroke engine works/i })
+		items.nth(2).getByRole('link', { name: /how a four-stroke engine works/i })
 	).toHaveAttribute('href', ARTICLE);
 
 	// Machines: one card each, with its open pages as links.
@@ -105,6 +108,16 @@ test('landing: "Open now" features the newest page; machines and mechanisms show
 	await expect(
 		machine('Car').getByRole('link', { name: /how a four-stroke engine works/i })
 	).toHaveAttribute('href', ARTICLE);
+	await expect(machine('Simple machines')).toContainText('1 open of 6 planned');
+	await expect(machine('Simple machines').getByRole('link', { name: 'The lever' })).toHaveAttribute(
+		'href',
+		LEVER
+	);
+	// a machine with an open page shows its picture
+	await expect(machine('Simple machines').locator('img')).toHaveAttribute(
+		'src',
+		'/covers/lever.jpg'
+	);
 	await expect(machine('Clocks and watches')).toContainText('4 planned');
 	await expect(machine('Clocks and watches').getByRole('link')).toHaveCount(0);
 	// Mechanisms: each says where it's found; one with an open page links to it.

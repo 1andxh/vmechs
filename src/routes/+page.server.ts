@@ -2,8 +2,11 @@ import { buildSystemIndex, MACHINES, MECHANISMS, SYSTEMS } from '#lib/content/sy
 import { listArticles } from '#lib/server/articles.ts';
 import type { PageServerLoad } from './$types';
 
-/** A machine's picture, once it has one (static/covers/). */
-const COVERS: Record<string, string> = { car: '/covers/car.svg' };
+/** A machine's picture, once it has one (static/covers/), with its size. */
+const COVERS: Record<string, { src: string; width: number; height: number }> = {
+	car: { src: '/covers/car.svg', width: 600, height: 150 },
+	'simple-machines': { src: '/covers/lever.jpg', width: 1280, height: 860 }
+};
 
 // Runs at build time (the page is prerendered), so only this small summary
 // reaches the browser, never the lesson code.
