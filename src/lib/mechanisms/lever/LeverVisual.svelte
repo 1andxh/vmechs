@@ -6,12 +6,12 @@
 -->
 <script lang="ts">
 	import LazyCanvas from '../../components/LazyCanvas.svelte';
+	import ForcesReadout from '../studio/ForcesReadout.svelte';
 	import { getCycle } from '../../animation/cycle.svelte.ts';
-	import { formatAdvantage, leverAt } from './lever.ts';
+	import { leverAt } from './lever.ts';
 
 	const cycle = getCycle();
 	const now = $derived(leverAt(cycle.angle));
-	const n = (v: number) => Math.round(v).toLocaleString('en-GB');
 </script>
 
 <div class="lever">
@@ -19,24 +19,13 @@
 		load={() => import('./LeverCanvas.svelte')}
 		label="The lever, in 3D. The subtitles describe each step."
 	/>
-	<dl class="readout" aria-label="Forces and distances">
-		<div>
-			<dt class="effort">Effort</dt>
-			<dd>{n(now.effort)} N</dd>
-		</div>
-		<div>
-			<dt class="load">Load</dt>
-			<dd>{n(now.load)} N</dd>
-		</div>
-		<div>
-			<dt>Advantage</dt>
-			<dd>{formatAdvantage(now.advantage)}</dd>
-		</div>
-		<div>
-			<dt>Moved</dt>
-			<dd>{now.effortMoved.toFixed(2)} m · {now.loadMoved.toFixed(2)} m</dd>
-		</div>
-	</dl>
+	<ForcesReadout
+		effort={now.effort}
+		load={now.load}
+		advantage={now.advantage}
+		effortMoved={now.effortMoved}
+		loadMoved={now.loadMoved}
+	/>
 </div>
 
 <style>
@@ -44,43 +33,5 @@
 		position: absolute;
 		inset: 0;
 		touch-action: pan-y;
-	}
-	.readout {
-		position: absolute;
-		left: 24px;
-		top: 16px;
-		display: flex;
-		flex-wrap: wrap;
-		gap: 4px 20px;
-		margin: 0;
-		font-size: 13px;
-		font-variant-numeric: tabular-nums;
-		pointer-events: none;
-	}
-	.readout div {
-		display: flex;
-		gap: 6px;
-	}
-	.readout dt {
-		color: var(--ink-3);
-	}
-	/* the forces' names in their parts' colours, like the arrows (ADR 0015) */
-	.readout dt.effort {
-		color: var(--part-green-text);
-	}
-	.readout dt.load {
-		color: var(--part-blue-text);
-	}
-	.readout dd {
-		margin: 0;
-		color: var(--ink-2);
-	}
-	@media (max-width: 860px) {
-		.readout {
-			left: 16px;
-			right: 16px;
-			font-size: 12px;
-			gap: 2px 14px;
-		}
 	}
 </style>

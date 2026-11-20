@@ -14,10 +14,11 @@
 	bar, y up, z towards the camera; the bar's middle is at x = 0.
 -->
 <script lang="ts">
-	import { T, useThrelte } from '@threlte/core';
-	import { ExtrudeGeometry, PMREMGenerator, Shape } from 'three';
-	import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+	import { T } from '@threlte/core';
+	import { ExtrudeGeometry, Shape } from 'three';
 	import { getCycle } from '../../animation/cycle.svelte.ts';
+	import Studio from '../studio/Studio.svelte';
+	import type { V3 } from '../studio/fit.ts';
 	import { layout, leverAt } from './lever.ts';
 	import { PARTS, STRUCTURE } from '../palette.ts';
 
@@ -88,51 +89,13 @@
 			: []
 	);
 
-	// ---- camera: fit the lever and its arrows on any screen ----
-	const { size, renderer, scene, invalidate } = useThrelte();
-	const FOV = 30;
-	const TARGET: [number, number, number] = [0, 1.15, 0];
-	const DIR = [0.18, 0.32, 1]; // from a little to the right and above
+	// ---- camera: fit the lever and its arrows on any screen (Studio.svelte) ----
+	const TARGET: V3 = [0, 1.15, 0];
+	const DIR: V3 = [0.18, 0.32, 1]; // from a little to the right and above
 	const HALF = { w: 2.3, h: 1.5 }; // room for the tallest arrow, on step 5
-	const camPos = $derived.by((): [number, number, number] => {
-		const aspect = $size.width / Math.max(1, $size.height);
-		const t = Math.tan(((FOV / 2) * Math.PI) / 180);
-		const dist = Math.max(HALF.w / (t * aspect), HALF.h / t);
-		const len = Math.hypot(DIR[0], DIR[1], DIR[2]);
-		return [
-			TARGET[0] + (DIR[0] / len) * dist,
-			TARGET[1] + (DIR[1] / len) * dist,
-			TARGET[2] + (DIR[2] / len) * dist
-		];
-	});
-
-	$effect(() => {
-		const pmrem = new PMREMGenerator(renderer);
-		const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-		scene.environment = env;
-		scene.environmentIntensity = 0.6;
-		invalidate();
-		return () => {
-			scene.environment = null;
-			env.dispose();
-			pmrem.dispose();
-		};
-	});
 </script>
 
-<T.PerspectiveCamera
-	makeDefault
-	fov={FOV}
-	near={0.1}
-	far={60}
-	position={camPos}
-	oncreate={(c) => c.lookAt(...TARGET)}
-/>
-
-<!-- soft and even, like a studio (ADR 0015) -->
-<T.HemisphereLight args={['#fffaf2', '#8a8580', 1.6]} />
-<T.DirectionalLight position={[-2, 5, 4]} intensity={1.4} color="#fff6ea" />
-<T.DirectionalLight position={[3, 2, -3]} intensity={0.5} />
+<Studio target={TARGET} dir={DIR} half={HALF} />
 
 {#snippet matte(color: string)}
 	<T.MeshStandardMaterial {color} metalness={0.05} roughness={0.6} />
