@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted. Supersedes ADR 0011. Brings back ADR 0006's engine and `InkRenderer`, but replaces its scroll tour.
+Superseded by ADR 0016: the engine made vmechs look like a car site, so the homepage dropped the model for a moving headline and posters. The V8 drawing will get its own page.
 
 ## Context
 

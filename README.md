@@ -1,6 +1,6 @@
 # vmechs
 
-Interactive lessons on how machines work: cars, clocks and watches, simple machines, and the mechanisms they share, such as gears, cams and springs. It's written for complete beginners and engineering students alike (ADR 0014). Each lesson is a 3D mechanism you can play, pause, scrub and take apart, with the explanation shown as short subtitles under the moving parts.
+Interactive lessons on how machines work: cars, clocks and watches, simple machines, and the mechanisms they share, such as gears, cams and springs. It's written for complete beginners and engineering students alike (ADR 0014). The homepage has no 3D model: a moving headline, "How things move.", and one poster per machine lead to the lessons (ADR 0016). Each lesson is a 3D mechanism you can play, pause, scrub and take apart, with the explanation shown as short subtitles under the moving parts.
 
 ## Features
 
@@ -8,7 +8,7 @@ Interactive lessons on how machines work: cars, clocks and watches, simple machi
 - **One value drives everything.** A single driving angle feeds the 3D scene, the subtitles, the timeline and the cycle chart, so they can't drift out of sync.
 - **Subtitle-style lessons.** One or two sentences per step on stage; the full explanation, cycle chart and notes live in an "All steps" sheet.
 - **Accessible by default.** Keyboard-operable timeline, a native `<dialog>` sheet, reduced-motion support (no autoplay, no slide animations), and WCAG AA text contrast.
-- **Fast static pages.** Every lesson is prerendered to HTML; three.js loads only when the 3D view comes into view.
+- **Fast static pages.** Every page is prerendered to HTML. The homepage loads no 3D at all; in a lesson, three.js loads only when the 3D view comes into view.
 
 ## Tech stack
 
@@ -54,10 +54,10 @@ src/
   lib/
     animation/        Playback state (CycleState) and the per-frame advance logic
     components/       Lesson stage: Lesson, Subtitle, Timeline, Step, LazyCanvas
-    content/          Article index and step helpers
+    content/          Article index, step helpers, the system plan and the homepage poster lists
     mechanisms/       One folder per mechanism: kinematics, 3D scene, 2D chart
     server/           Build-time-only code (article listings)
-  routes/             Home page and /learn/[category]/[slug]
+  routes/             Home page, About, 404, sitemap and /learn/[category]/[slug]
   app.css             Design tokens
 ```
 
@@ -97,8 +97,8 @@ Browser tests run in Chromium, Firefox, WebKit (Safari's engine) and an emulated
 
 ## Roadmap
 
-- **Done:** shipped on Cloudflare with CI on every push.
-- **Now:** help people find the lesson: a landing page, a system index, and a content and safety standard.
+- **Done:** shipped on Cloudflare with CI on every push; a landing page that leads to every machine.
+- **Now:** help people find the lesson: a system index, and a content and safety standard.
 - **Next:** a valvetrain lesson that tests the architecture before any shared kit is built, then bounded reader features: quick checks, warning lights and one "Break it" demo.
 - **Later:** a FastAPI backend that starts with a "Report a mistake" intake, then embeds, offline and share images.
 

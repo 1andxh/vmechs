@@ -1,52 +1,36 @@
 <!--
-	Landing page, laid out as an engineering drawing sheet (ADR 0012): the
-	running ink V8 with a list of its parts beside it, each leading to the page
-	that has, or will have, it. Pointing at a part lights it in the
-	accent ink. Then what's open, and the whole car. No course language: this
-	is a machine to explore, not a class to enrol in.
+	Landing page (ADR 0016): no 3D model. The headline is the one moving thing:
+	its "o" is a gear that turns and its full stop a piston that rises and
+	falls. Under it, a quiet poster for each machine and one for the
+	mechanisms, each listing its open pages. Then what's open. No course
+	language: this is machines to explore, not a class to enrol in.
 -->
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { beforeNavigate } from '$app/navigation';
-	import HeroEngine from '#lib/mechanisms/engine/HeroEngine.svelte';
-	import { PARTS, type Part, type SheetState } from '#lib/mechanisms/engine/v8/sheet.ts';
 	import PageMeta from '#lib/components/PageMeta.svelte';
-	import { planTotals } from '#lib/content/systems.ts';
+	import { posterList } from '#lib/content/posters.ts';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
-	const totals = $derived(planTotals(data.systems));
 	// "Open now" features the newest page (data.open is newest first); the rest follow as a list.
 	const [newest, ...earlier] = $derived(data.open);
-	const engine = $derived(data.systems.find((s) => s.id === 'engine')!);
-	// Each part with its page: open pages link, the rest are on the way.
-	const parts = $derived(
-		PARTS.map((p) => ({ ...p, page: engine.lessons.find((l) => l.slug === p.slug)! }))
-	);
-
-	const sheet = $state<SheetState>({ running: false, active: null, drawn: false });
-	const point = (part: Part | null) => () => (sheet.active = part);
-
-	// Leaving for another page: stop the engine first. Where WebGL is drawn in
-	// software (no GPU), each running frame takes tens of milliseconds, and the
-	// next page's code has to run between those frames.
-	let leaving = false;
-	beforeNavigate(({ to }) => {
-		if (to?.url.pathname === location.pathname) return;
-		leaving = true;
-		sheet.running = false;
-	});
-
-	let drawEl: HTMLElement;
-	onMount(() => {
-		// The engine runs only while it's on screen and motion is allowed.
-		const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-		const seen = new IntersectionObserver(
-			([e]) => (sheet.running = e.isIntersecting && !still && !leaving)
-		);
-		seen.observe(drawEl);
-		return () => seen.disconnect();
-	});
+	// A poster for each machine, then one for the mechanisms, each in a part colour (ADR 0015).
+	const posters = $derived([
+		...data.machines.map((m) => ({
+			name: m.name,
+			blurb: m.blurb,
+			colour: m.colour,
+			...posterList(m.open, m.planned)
+		})),
+		{
+			name: 'Mechanisms',
+			blurb: 'The same few ideas, inside every machine.',
+			colour: 'green',
+			...posterList(
+				data.mechanisms.flatMap((m) => (m.href ? [{ title: m.name, href: m.href }] : [])),
+				data.mechanisms.length
+			)
+		}
+	]);
 </script>
 
 <PageMeta
@@ -56,57 +40,56 @@
 	image="/covers/four-stroke-cycle.jpg"
 />
 
-<section class="sheet" aria-labelledby="sheet-title" data-drawn={sheet.drawn || undefined}>
+<div class="top">
 	<header class="bar">
 		<a href="/" class="brand" aria-current="page">vmechs</a>
-		<span class="sheet-no">Sheet 1 · Engine</span>
+		<a href="/about" class="about">About</a>
 	</header>
 
-	<div class="top">
-		<div class="draw" bind:this={drawEl}>
-			<HeroEngine {sheet} />
-		</div>
-
-		<div class="legend">
-			<h1 id="sheet-title">Look inside the <span class="hl">machine.</span></h1>
-			<p class="lede">
-				Pick a part. Each one opens into a page that takes it apart and sets it running.
-			</p>
-			<ol class="parts" aria-label="Parts of the engine">
-				{#each parts as part (part.n)}
-					<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-					<li
-						class:on={part.page.available}
-						class:lit={sheet.active === part.part}
-						style:--part="var(--part-{part.colour})"
-						style:--part-text="var(--part-{part.colour}-text)"
-						onpointerenter={point(part.part)}
-						onpointerleave={point(null)}
-					>
-						<b aria-hidden="true">{part.n}</b>
-						{#if part.page.href}
-							<a href={part.page.href} onfocus={point(part.part)} onblur={point(null)}>
-								<span class="part">{part.name}</span>
-								<span class="dest">{part.page.title}</span>
-							</a>
-						{:else}
-							<div>
-								<span class="part">{part.name}</span>
-								<span class="dest">{part.page.title}{' · on the way'}</span>
-							</div>
-						{/if}
-					</li>
-				{/each}
-			</ol>
-			<dl class="block">
-				<dt>Drawing</dt>
-				<dd>Twin-turbo V8</dd>
-				<dt>Pages open</dt>
-				<dd>{totals.open} of {totals.open + totals.coming}</dd>
-			</dl>
-		</div>
+	<!-- The gear and the piston are decoration; screen readers get the plain words. -->
+	<h1 class="head">
+		<span class="sr-only">How things move.</span>
+		<span aria-hidden="true"
+			>H<span class="gear"
+				><svg viewBox="-50 -50 100 100"
+					><path
+						d="M32.9 -8.6L43.6 -5.6L43.6 5.6L32.9 8.6L32.3 10.5L39.8 18.8L33.7 28.3L23.0 25.0L21.5 26.3L23.3 37.4L13.0 42.0L5.8 33.5L3.9 33.8L-0.6 44.0L-11.8 42.4L-13.2 31.3L-15.0 30.5L-24.3 36.7L-32.8 29.3L-28.1 19.2L-29.1 17.6L-40.3 17.7L-43.5 6.9L-34.0 1.0L-34.0 -1.0L-43.5 -6.9L-40.3 -17.7L-29.1 -17.6L-28.1 -19.2L-32.8 -29.3L-24.3 -36.7L-15.0 -30.5L-13.2 -31.3L-11.8 -42.4L-0.6 -44.0L3.9 -33.8L5.8 -33.5L13.0 -42.0L23.3 -37.4L21.5 -26.3L23.0 -25.0L33.7 -28.3L39.8 -18.8L32.3 -10.5Z"
+					/><circle r="13" /></svg
+				></span
+			>w things<br />move<span class="piston"></span></span
+		>
+	</h1>
+	<div class="row">
+		<p class="lede">
+			Every machine, from a car engine to a wristwatch, runs on a few simple ideas. vmechs takes
+			them apart and sets them moving, step by step, with every part in its own colour. Curious, or
+			studying engineering: see how it works, not just read about it.
+		</p>
 	</div>
-</section>
+
+	<!-- What vmechs covers (ADR 0014): each machine, then the mechanisms inside them. -->
+	<section class="posters" aria-labelledby="posters-title">
+		<h2 id="posters-title" class="sr-only">Machines and mechanisms</h2>
+		{#each posters as p (p.name)}
+			<article class="poster" style:--c="var(--part-{p.colour})">
+				<div>
+					<h3>{p.name}</h3>
+					<p class="blurb">{p.blurb}</p>
+				</div>
+				<ul>
+					{#each p.links as page (page.href)}
+						<li><a href={page.href}>{page.title}</a></li>
+					{/each}
+					{#if p.more?.href}
+						<li><a class="more" href={p.more.href}>{p.more.text}</a></li>
+					{:else if p.more}
+						<li class="more">{p.more.text}</li>
+					{/if}
+				</ul>
+			</article>
+		{/each}
+	</section>
+</div>
 
 <div class="page">
 	<section class="open" aria-labelledby="open-title">
@@ -156,64 +139,6 @@
 		{/each}
 	</section>
 
-	<!-- What vmechs covers (ADR 0014): machines, then the mechanisms inside them. -->
-	<section class="machines" aria-labelledby="machines-title">
-		<h2 id="machines-title">Machines</h2>
-		<div class="machine-grid">
-			{#each data.machines as m (m.id)}
-				<article class="machine">
-					<div class="pic">
-						{#if m.cover}
-							<img
-								src={m.cover.src}
-								class:drawing={m.cover.src.endsWith('.svg')}
-								alt=""
-								width={m.cover.width}
-								height={m.cover.height}
-								loading="lazy"
-								decoding="async"
-							/>
-						{:else}
-							<span>Drawing comes with its first page</span>
-						{/if}
-					</div>
-					<div class="machine-text">
-						<h3>{m.name}</h3>
-						<p>{m.blurb}</p>
-						<p class="count">
-							{m.open.length
-								? `${m.open.length} open of ${m.planned} planned`
-								: `${m.planned} planned`}
-						</p>
-						{#each m.open as page (page.href)}
-							<a href={page.href}>{page.title} <span aria-hidden="true">→</span></a>
-						{/each}
-					</div>
-				</article>
-			{/each}
-		</div>
-	</section>
-
-	<section class="mechanisms" aria-labelledby="mechanisms-title">
-		<h2 id="mechanisms-title">Mechanisms</h2>
-		<p class="sub">The same few ideas run through every machine.</p>
-		<ul class="mech-grid">
-			{#each data.mechanisms as m (m.id)}
-				<li class:on={m.href}>
-					{#if m.href}
-						<a href={m.href}>{m.name} <span aria-hidden="true">→</span></a>
-					{:else}
-						<span class="name">{m.name}</span>
-					{/if}
-					<p class="found">
-						Found in {#each m.foundIn as place, i (place)}{#if i}<span class="sr-only">{', '}</span
-								>{/if}<span class="chip">{place}</span>{/each}
-					</p>
-				</li>
-			{/each}
-		</ul>
-	</section>
-
 	<section class="promise" aria-label="Accuracy">
 		<p class="pledge">Every page names its sources and says where it simplifies.</p>
 		<p>
@@ -223,33 +148,19 @@
 
 	<footer class="foot">
 		<span class="wordmark">vmechs</span>
-		<span><a href="/about">About</a> · How machines actually work · © 2026</span>
+		<span><a href="/about">About</a> · Mechanics made easy. · © 2026</span>
 	</footer>
 </div>
 
 <style>
-	/* ---- The drawing sheet: a faint grid, the engine, its parts list ---- */
-	.sheet {
-		position: relative;
-		max-width: 1280px;
+	/* ---- The top: the moving headline, then the posters ---- */
+	.top {
+		/* the same column as the rest of the page, so the left edges line up */
+		max-width: 1120px;
 		margin: 0 auto;
-		padding: 20px 48px 56px;
-		background-image:
-			linear-gradient(var(--line) 1px, transparent 1px),
-			linear-gradient(90deg, var(--line) 1px, transparent 1px);
-		background-size: 80px 80px;
-		background-position: -1px -1px;
-	}
-	/* the grid fades out towards the edges, like light falling off a sheet */
-	.sheet::before {
-		content: '';
-		position: absolute;
-		inset: 0;
-		background: radial-gradient(ellipse at 45% 50%, transparent 25%, var(--bg) 72%);
-		pointer-events: none;
+		padding: 20px 48px 0;
 	}
 	.bar {
-		position: relative;
 		display: flex;
 		justify-content: space-between;
 		align-items: baseline;
@@ -261,123 +172,160 @@
 		color: var(--ink-2);
 		text-decoration: none;
 	}
-	.sheet-no {
-		font-size: 14px;
-		font-weight: 600;
+	.about {
+		font-size: 15px;
 		color: var(--ink-2);
+		text-decoration: none;
 	}
-	.top {
-		position: relative;
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) 380px;
-		gap: 32px;
-		align-items: center;
-		margin-top: 12px;
-	}
-	.draw {
-		position: relative;
-		aspect-ratio: 1.28;
-	}
-	h1 {
-		margin: 0;
-		font-size: clamp(40px, 4.2vw, 62px);
-		line-height: 0.95;
-		color: var(--ink);
-		text-wrap: balance;
-	}
-	.hl {
+	.about:hover {
 		color: var(--accent);
 	}
+	.head {
+		margin: 64px 0 0;
+		font-size: clamp(56px, 10.5vw, 150px);
+		line-height: 0.92;
+		font-stretch: 122%;
+		font-weight: 700;
+		letter-spacing: -0.035em;
+		color: var(--ink);
+	}
+	/* the "o": a gear, turning slowly */
+	.gear {
+		display: inline-block;
+		width: 0.74em;
+		height: 0.74em;
+		margin: 0 0.01em;
+		vertical-align: -0.02em;
+	}
+	.gear svg {
+		display: block;
+		width: 100%;
+		height: 100%;
+		animation: turn 9s linear infinite;
+	}
+	.gear path {
+		fill: var(--part-green);
+		stroke: var(--part-green-text);
+		stroke-width: 3;
+		stroke-linejoin: round;
+	}
+	.gear circle {
+		fill: var(--bg);
+		stroke: var(--part-green-text);
+		stroke-width: 3;
+	}
+	/* the full stop: a piston, rising and falling */
+	.piston {
+		display: inline-block;
+		width: 0.2em;
+		height: 0.2em;
+		margin-left: 0.05em;
+		border-radius: 0.03em;
+		background: var(--part-red);
+		outline: 0.035em solid var(--part-red-text);
+		outline-offset: -0.035em;
+		animation: pump 1.5s ease-in-out infinite;
+	}
+	@keyframes turn {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+	@keyframes pump {
+		50% {
+			transform: translateY(-0.32em);
+		}
+	}
+	.row {
+		margin-top: 14px;
+	}
 	.lede {
-		margin: 16px 0 26px;
-		font-size: 18px;
+		margin: 0;
+		max-width: 42ch;
+		font-size: 20px;
+		line-height: 1.5;
+		color: var(--ink-2);
+	}
+
+	/* quiet posters: a soft tint of the part colour, ink type, no pictures */
+	.posters {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 14px;
+		margin-top: 64px;
+	}
+	/*
+	 * Each poster spans two rows of the posters grid and shares them (subgrid):
+	 * the name and blurb in the first, the list in the second. A row is as tall
+	 * as its tallest poster, so the dividers line up even when a name wraps.
+	 */
+	.poster {
+		display: grid;
+		grid-row: span 2;
+		grid-template-rows: subgrid;
+		row-gap: 44px;
+		padding: 18px 18px 16px;
+		border-radius: 12px;
+		background: color-mix(in srgb, var(--c) 13%, var(--bg));
+		transition: background-color 0.15s ease-out;
+	}
+	.poster:hover,
+	.poster:focus-within {
+		background: color-mix(in srgb, var(--c) 22%, var(--bg));
+	}
+	.poster h3 {
+		margin: 0;
+		font-size: clamp(24px, 2.2vw, 30px);
+		line-height: 1;
+		color: var(--ink);
+	}
+	.blurb {
+		margin: 10px 0 0;
+		font-size: 14px;
 		line-height: 1.45;
 		color: var(--ink-2);
 	}
-	.parts {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-		border-top: 1px solid var(--line);
-	}
-	.parts li {
-		display: flex;
-		gap: 14px;
-		align-items: start;
-		padding: 13px 0;
-		border-bottom: 1px solid var(--line);
-	}
-	.parts b {
-		flex: none;
+	/* room for two links and a "more" line, so every divider sits at the same height */
+	.poster ul {
 		display: grid;
-		place-items: center;
-		width: 26px;
-		height: 26px;
-		/* the list is the drawing's key: each number in its part's colour (ADR 0015) */
-		border: 2px solid var(--part);
-		border-radius: 50%;
-		font-size: 12px;
-		font-weight: 650;
-		color: var(--part-text);
+		align-content: start;
+		gap: 4px;
+		min-height: calc(10px + 4.2em + 8px);
+		margin: 0;
+		padding: 10px 0 0;
+		list-style: none;
+		border-top: 1px solid color-mix(in srgb, var(--c) 40%, var(--bg));
+		font-size: 14px;
+		line-height: 1.4;
 	}
-	.parts li.lit b {
-		background: var(--part);
+	.poster a {
+		font-weight: 550;
 		color: var(--ink);
-	}
-	.parts a {
 		text-decoration: none;
 	}
-	.part {
-		display: block;
-		font-weight: 600;
+	.poster a:hover {
 		color: var(--ink);
+		text-decoration: underline;
+		text-decoration-color: var(--c);
+		text-decoration-thickness: 2px;
+		text-underline-offset: 3px;
 	}
-	.dest {
-		display: block;
-		font-size: 14px;
-		color: var(--ink-3);
-	}
-	.parts li.on .dest {
-		color: var(--accent);
-	}
-	.parts a:hover .part,
-	.parts li.lit .part {
-		color: var(--accent);
-	}
-	/* the title block in a drawing's corner */
-	.block {
-		display: grid;
-		grid-template-columns: auto auto;
-		gap: 4px 18px;
-		width: max-content;
-		margin: 26px 0 0 auto;
-		padding: 12px 16px;
-		border: 1px solid var(--line);
-		background: var(--bg);
-		font-size: 12px;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-	}
-	.block dt {
-		color: var(--ink-3);
-	}
-	.block dd {
-		margin: 0;
-		font-weight: 600;
+	.more,
+	a.more {
+		font-weight: 400;
 		color: var(--ink-2);
 	}
-	/* ---- Below the sheet ---- */
+
 	.page {
 		max-width: 1120px;
 		margin: 0 auto;
 		padding: 72px 48px 40px;
 	}
 
-	/* ---- What's open, the whole car, the promise ---- */
-	h1,
+	/* ---- What's open, the promise ---- */
 	h2,
 	.open h3,
-	.machine h3,
+	.poster h3,
 	.pledge,
 	.wordmark {
 		font-stretch: var(--display-stretch);
@@ -516,126 +464,6 @@
 		color: var(--ink-3);
 	}
 
-	/* ---- Machines and mechanisms (ADR 0014) ---- */
-	.machines {
-		margin-top: 96px;
-	}
-	.machine-grid {
-		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 16px;
-	}
-	.machine {
-		display: flex;
-		flex-direction: column;
-		overflow: hidden;
-		border: 1px solid var(--line);
-		border-radius: 14px;
-		background: var(--surface);
-	}
-	.machine .pic {
-		display: grid;
-		place-items: center;
-		aspect-ratio: 16 / 10;
-		/* clip, so a picture can't stretch the box past its ratio */
-		overflow: hidden;
-		background: var(--bg);
-		font-size: 13px;
-		color: var(--ink-3);
-	}
-	.machine .pic img {
-		display: block;
-		width: 100%;
-		height: 100%;
-		/* a still from a lesson fills the card (its edges are empty stage) */
-		object-fit: cover;
-	}
-	/* a line drawing is shown whole, centred, with room around it */
-	.machine .pic img.drawing {
-		object-fit: contain;
-		padding: 0 8%;
-	}
-	.machine-text {
-		display: grid;
-		gap: 6px;
-		padding: 16px 18px 20px;
-	}
-	.machine h3 {
-		margin: 0;
-		font-size: 22px;
-		line-height: 1.15;
-	}
-	.machine-text p {
-		margin: 0;
-		font-size: 15px;
-		line-height: 1.5;
-		color: var(--ink-2);
-	}
-	.machine .count {
-		font-size: 13px;
-		color: var(--ink-3);
-	}
-	.machine a,
-	.mech-grid a {
-		font-size: 15px;
-		font-weight: 500;
-		color: var(--accent);
-		text-decoration: none;
-	}
-	.machine a:hover,
-	.mech-grid a:hover {
-		text-decoration: underline;
-		text-underline-offset: 4px;
-	}
-	.mechanisms {
-		margin-top: 72px;
-	}
-	.mechanisms h2 {
-		margin-bottom: 6px;
-	}
-	.sub {
-		margin: 0 0 18px;
-		font-size: 16px;
-		color: var(--ink-3);
-	}
-	.mech-grid {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-		display: grid;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-		column-gap: 20px;
-		border-top: 1px solid var(--line);
-	}
-	.mech-grid li {
-		display: grid;
-		align-content: start;
-		gap: 6px;
-		padding: 14px 0;
-		border-bottom: 1px solid var(--line);
-	}
-	.mech-grid .name {
-		font-size: 15px;
-		font-weight: 600;
-		color: var(--ink-2);
-	}
-	.found {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 4px;
-		margin: 0;
-		font-size: 12px;
-		color: var(--ink-3);
-	}
-	.chip {
-		padding: 1px 8px;
-		border: 1px solid var(--line);
-		border-radius: 999px;
-		font-size: 11px;
-		font-weight: 600;
-		letter-spacing: 0.03em;
-	}
 	.sr-only {
 		position: absolute;
 		width: 1px;
@@ -685,16 +513,21 @@
 		color: var(--accent);
 	}
 
+	@media (max-width: 960px) {
+		.posters {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
 	@media (max-width: 860px) {
-		.sheet {
-			padding: 14px 20px 40px;
-		}
 		.top {
-			grid-template-columns: minmax(0, 1fr);
-			gap: 8px;
+			padding: 14px 20px 0;
 		}
-		.block {
-			margin-left: 0;
+		.head {
+			margin-top: 48px;
+		}
+		.posters {
+			margin-top: 44px;
+			gap: 10px;
 		}
 		.page {
 			padding: 56px 20px 32px;
@@ -716,22 +549,39 @@
 		.item .go {
 			display: none;
 		}
-		.machines,
 		.promise {
 			margin-top: 80px;
-		}
-		.machine-grid,
-		.mech-grid {
-			grid-template-columns: minmax(0, 1fr);
 		}
 		.foot {
 			flex-direction: column;
 			margin-top: 80px;
 		}
 	}
+	@media (max-width: 560px) {
+		.posters {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.poster {
+			min-height: 0;
+		}
+		.poster {
+			row-gap: 24px;
+		}
+		/* one poster per row: nothing to line up with, so no room held for a third line */
+		.poster ul {
+			min-height: 0;
+		}
+	}
 	@media (prefers-reduced-motion: reduce) {
 		.feat,
 		.go {
+			transition: none;
+		}
+		.gear svg,
+		.piston {
+			animation: none;
+		}
+		.poster {
 			transition: none;
 		}
 	}

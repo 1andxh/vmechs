@@ -22,17 +22,11 @@ async function openArticle(page: Page) {
 }
 
 /**
- * Open the homepage and wait until its engine drawing has drawn its first
- * frame, or the page has settled on no WebGL. Where WebGL is drawn in
- * software (CI), that first frame compiles the renderer's shaders and can hold
- * the page for seconds; clicking during it is what made link tests flaky.
+ * Open the homepage. It has no 3D (ADR 0016) and its links are plain links,
+ * so it can be used as soon as it has loaded.
  */
 async function openHome(page: Page) {
 	await page.goto('/');
-	await page
-		.locator('.sheet[data-drawn], .lazy[data-status="no-webgl"], .lazy[data-status="error"]')
-		.first()
-		.waitFor();
 }
 
 const slider = (page: Page) => page.getByRole('slider', { name: 'Crank angle' });
@@ -48,37 +42,26 @@ test('home lists the four-stroke article and links to it', async ({ page }) => {
 	await expect(page.getByRole('heading', { level: 1 })).toHaveText(/four-stroke/i);
 });
 
-test('landing: a drawing sheet whose parts list leads to every engine page, open or on the way', async ({
+test('landing: a moving headline and no 3D model', async ({ page }) => {
+	await openHome(page);
+	// The gear and the piston inside the headline are decoration; it reads as plain words.
+	await expect(page.getByRole('heading', { level: 1, name: 'How things move.' })).toBeVisible();
+	await expect(page.locator('h1 [aria-hidden="true"] svg')).toHaveCount(1);
+	// No model on the homepage: no 3D canvas, not even a placeholder for one.
+	await expect(page.locator('canvas, .lazy')).toHaveCount(0);
+});
+
+test('landing: no link into one machine at the top; the slogan signs off the footer', async ({
 	page
 }) => {
 	await openHome(page);
-	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Look inside the machine.');
-	const parts = page.getByRole('list', { name: 'Parts of the engine' }).getByRole('listitem');
-	await expect(parts).toHaveCount(5);
-	// The open page is a link; the planned ones say they're on the way, and aren't links.
-	await expect(
-		parts.first().getByRole('link', { name: /pistons and crankshaft/i })
-	).toHaveAttribute('href', ARTICLE);
-	await expect(
-		page.getByRole('list', { name: 'Parts of the engine' }).getByRole('link')
-	).toHaveCount(1);
-	await expect(parts.nth(1)).toContainText('Valvetrain: camshaft and timing · on the way');
-	// The title block counts the whole plan, every machine and mechanism.
-	await expect(page.locator('.block')).toContainText('3 of 35');
-	// Pointing at a part lights it.
-	await parts.nth(1).hover();
-	await expect(parts.nth(1)).toHaveClass(/lit/);
-	// The drawing itself carries no numbers or labels.
-	await expect(page.locator('.draw a, .draw .pin')).toHaveCount(0);
+	// The engine gets its own page; the top of the homepage doesn't send you to it.
+	await expect(page.getByRole('link', { name: /engine run/i })).toHaveCount(0);
+	// (the footer sits inside <main>, so it isn't a contentinfo landmark; find it by tag)
+	await expect(page.locator('footer')).toContainText('Mechanics made easy.');
 });
 
-test('landing: a part in the list opens its page', async ({ page }) => {
-	await openHome(page);
-	await page.getByRole('link', { name: /pistons and crankshaft/i }).click();
-	await expect(page).toHaveURL(ARTICLE);
-});
-
-test('landing: "Open now" features the newest page; machines and mechanisms show everything planned', async ({
+test('landing: posters show every machine and the mechanisms; "Open now" features the newest page', async ({
 	page
 }) => {
 	await page.goto('/');
@@ -99,43 +82,51 @@ test('landing: "Open now" features the newest page; machines and mechanisms show
 		items.nth(2).getByRole('link', { name: /how a four-stroke engine works/i })
 	).toHaveAttribute('href', ARTICLE);
 
-	// Machines: one card each, with its open pages as links.
-	const machines = page.getByRole('region', { name: 'Machines' });
-	const machine = (name: string) =>
-		machines.getByRole('article').filter({ has: page.getByRole('heading', { name, exact: true }) });
-	await expect(machines.getByRole('article')).toHaveCount(3);
-	await expect(machine('Car')).toContainText('2 open of 19 planned');
+	// One poster per machine, plus one for the mechanisms, each listing its open pages.
+	const posters = page.getByRole('region', { name: 'Machines and mechanisms' });
+	const poster = (name: string) =>
+		posters.getByRole('article').filter({ has: page.getByRole('heading', { name, exact: true }) });
+	await expect(posters.getByRole('article')).toHaveCount(4);
+	await expect(poster('Car')).toContainText('17 more on the way');
 	await expect(
-		machine('Car').getByRole('link', { name: /how a four-stroke engine works/i })
+		poster('Car').getByRole('link', { name: /how a four-stroke engine works/i })
 	).toHaveAttribute('href', ARTICLE);
-	await expect(machine('Simple machines')).toContainText('1 open of 6 planned');
-	await expect(machine('Simple machines').getByRole('link', { name: 'The lever' })).toHaveAttribute(
+	await expect(poster('Simple machines')).toContainText('5 more on the way');
+	await expect(poster('Simple machines').getByRole('link', { name: 'The lever' })).toHaveAttribute(
 		'href',
 		LEVER
 	);
-	// a machine with an open page shows its picture
-	await expect(machine('Simple machines').locator('img')).toHaveAttribute(
-		'src',
-		'/covers/lever.jpg'
-	);
-	await expect(machine('Clocks and watches')).toContainText('4 planned');
-	await expect(machine('Clocks and watches').getByRole('link')).toHaveCount(0);
-	// Mechanisms: each says where it's found; one with an open page links to it.
-	const mechanisms = page.getByRole('region', { name: 'Mechanisms' });
-	const mech = (name: string) => mechanisms.getByRole('listitem').filter({ hasText: name });
-	await expect(mech('Gears and gear ratios').getByRole('link')).toHaveAttribute(
-		'href',
-		'/learn/transmission/gears'
-	);
-	await expect(mech('Gears and gear ratios')).toContainText('Found in Car, Clock, Bicycle');
-	await expect(mech('Escapement').getByRole('link')).toHaveCount(0);
+	await expect(poster('Clocks and watches')).toContainText('4 on the way');
+	await expect(poster('Clocks and watches').getByRole('link')).toHaveCount(0);
+	await expect(poster('Mechanisms').getByRole('link')).toHaveCount(1);
+	await expect(
+		poster('Mechanisms').getByRole('link', { name: 'Gears and gear ratios' })
+	).toHaveAttribute('href', '/learn/transmission/gears');
+	await expect(poster('Mechanisms')).toContainText('7 more on the way');
+	// The posters are type only: no pictures, no icons.
+	await expect(posters.locator('img, svg')).toHaveCount(0);
+	// Pointing at a poster deepens its tint.
+	const tint = () => poster('Car').evaluate((el) => getComputedStyle(el).backgroundColor);
+	const atRest = await tint();
+	await poster('Car').hover();
+	await expect.poll(tint).not.toBe(atRest);
+	// The dividers line up: posters side by side start their lists at the same height
+	// (four in a row on a laptop, two on a tablet, one on a phone).
+	const byRow = new Map<number, Set<number>>();
+	for (const card of await posters.getByRole('article').all()) {
+		const row = Math.round((await card.boundingBox())!.y);
+		const list = Math.round((await card.getByRole('list').boundingBox())!.y);
+		byRow.set(row, (byRow.get(row) ?? new Set()).add(list));
+	}
+	for (const lists of byRow.values()) expect(lists.size).toBe(1);
 });
 
 test('the About page says what vmechs is, how accuracy works, and how to report a mistake', async ({
 	page
 }) => {
 	await page.goto('/');
-	await page.getByRole('link', { name: 'About', exact: true }).click();
+	// the header and the footer both link to About
+	await page.getByRole('link', { name: 'About', exact: true }).first().click();
 	await expect(page).toHaveURL('/about');
 	await expect(page.getByRole('heading', { level: 1 })).toHaveText(
 		'Machines are easier to understand when you can watch them move.'
@@ -155,9 +146,7 @@ test('the About page says what vmechs is, how accuracy works, and how to report 
 	await expect(page.getByText('It never diagnoses a fault')).toBeVisible();
 });
 
-test('the 3D views have a text alternative for screen readers', async ({ page }) => {
-	await openHome(page);
-	await expect(page.getByRole('img', { name: /a twin-turbo V8, running/i })).toBeVisible();
+test('a lesson 3D view has a text alternative for screen readers', async ({ page }) => {
 	await page.goto(LEVER);
 	await page.locator('.lesson[data-hydrated]').waitFor();
 	await expect(

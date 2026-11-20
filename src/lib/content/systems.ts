@@ -8,20 +8,29 @@
  * throws otherwise.
  */
 
-/** The machines, in the order the homepage shows them. */
+import type { PartColour } from '../mechanisms/palette.ts';
+
+/** The machines, in the order the homepage shows them, each with its poster's colour. */
 export const MACHINES = [
-	{ id: 'car', name: 'Car', blurb: 'From the engine to the wheels, system by system.' },
+	{
+		id: 'car',
+		name: 'Car',
+		blurb: 'From the engine to the wheels, system by system.',
+		colour: 'red'
+	},
 	{
 		id: 'clocks',
 		name: 'Clocks and watches',
-		blurb: 'How a spring and a swinging wheel keep time.'
+		blurb: 'How a spring and a swinging wheel keep time.',
+		colour: 'blue'
 	},
 	{
 		id: 'simple-machines',
 		name: 'Simple machines',
-		blurb: 'The six classic building blocks inside every machine.'
+		blurb: 'The six classic building blocks inside every machine.',
+		colour: 'gold'
 	}
-] as const;
+] as const satisfies readonly { id: string; name: string; blurb: string; colour: PartColour }[];
 
 /** A machine's id, or 'mechanisms' for the section of mechanism pages. */
 export type Group = (typeof MACHINES)[number]['id'] | 'mechanisms';
