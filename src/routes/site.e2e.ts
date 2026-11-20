@@ -103,10 +103,15 @@ test('landing: posters show every machine and the mechanisms; "Open now" feature
 	await expect(
 		poster('Car').getByRole('link', { name: /how a four-stroke engine works/i })
 	).toHaveAttribute('href', ARTICLE);
-	// all six open: two links, then a count that leads to "Open now"
+	// all six open: two links, then a count; the title and the count lead to the section page
 	await expect(
 		poster('Simple machines').getByRole('link', { name: '4 more open' })
-	).toHaveAttribute('href', '#open-title');
+	).toHaveAttribute('href', '/learn/simple-machines');
+	await expect(
+		poster('Simple machines').getByRole('heading').getByRole('link', { name: 'Simple machines' })
+	).toHaveAttribute('href', '/learn/simple-machines');
+	// a machine without a section page of its own keeps a plain title
+	await expect(poster('Car').getByRole('heading').getByRole('link')).toHaveCount(0);
 	await expect(poster('Simple machines').getByRole('link', { name: 'The lever' })).toHaveAttribute(
 		'href',
 		LEVER
@@ -212,13 +217,57 @@ test('the sitemap lists every page, and robots.txt points to it', async ({ reque
 		PULLEY,
 		INCLINE,
 		WEDGE,
-		SCREW
+		SCREW,
+		'/learn/simple-machines',
+		'/learn/engine',
+		'/learn/transmission'
 	])
 		expect(xml, path).toMatch(new RegExp(`<loc>https://[^<]+${path.replace(/\//g, '\\/')}</loc>`));
-	expect(xml.match(/<url>/g)).toHaveLength(10);
+	expect(xml.match(/<url>/g)).toHaveLength(13);
 	expect(await (await request.get('/robots.txt')).text()).toMatch(
 		/^Sitemap: https:\/\/.+\/sitemap\.xml$/m
 	);
+});
+
+test('the Simple machines page teaches the six in two families, with their formulas', async ({
+	page
+}) => {
+	const errors = trackErrors(page);
+	await page.goto('/learn/simple-machines');
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Simple machines');
+	const family = (name: string) => page.getByRole('region', { name });
+	const titles = (name: string) => family(name).getByRole('heading', { level: 3 });
+	await expect(titles('Turn about a point')).toHaveText([
+		'The lever',
+		'The wheel and axle',
+		'The pulley'
+	]);
+	await expect(titles('A slope')).toHaveText(['The inclined plane', 'The wedge', 'The screw']);
+	// each with its formula, for students
+	await expect(family('A slope')).toContainText('IMA = slope length ÷ height');
+	await expect(family('Turn about a point')).toContainText('IMA = effort arm ÷ load arm');
+	// and each opens its lesson
+	await page.getByRole('link', { name: 'The screw' }).click();
+	await expect(page).toHaveURL(SCREW);
+	expect(errors).toEqual([]);
+});
+
+test('a section with pages still to come lists them, but only open pages link', async ({
+	page
+}) => {
+	await page.goto('/learn/engine');
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Engine');
+	const items = page.getByRole('listitem');
+	await expect(items).toHaveCount(5);
+	await expect(page.getByRole('main').getByRole('link', { name: /four-stroke/i })).toHaveAttribute(
+		'href',
+		ARTICLE
+	);
+	await expect(items.nth(1)).toContainText('On the way');
+	await expect(items.nth(1).getByRole('link')).toHaveCount(0);
+	// a section with nothing open yet has no page
+	const response = await page.goto('/learn/clocks-watches');
+	expect(response?.status()).toBe(404);
 });
 
 test('an unknown address says so, with a 404 status and a way back', async ({ page }) => {

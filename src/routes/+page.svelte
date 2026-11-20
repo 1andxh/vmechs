@@ -7,6 +7,7 @@
 -->
 <script lang="ts">
 	import PageMeta from '#lib/components/PageMeta.svelte';
+	import SiteFooter from '#lib/components/SiteFooter.svelte';
 	import { posterList } from '#lib/content/posters.ts';
 	import type { PageProps } from './$types';
 
@@ -17,12 +18,14 @@
 	const posters = $derived([
 		...data.machines.map((m) => ({
 			name: m.name,
+			href: m.href,
 			blurb: m.blurb,
 			colour: m.colour,
-			...posterList(m.open, m.planned)
+			...posterList(m.open, m.planned, m.href ?? undefined)
 		})),
 		{
 			name: 'Mechanisms',
+			href: null,
 			blurb: 'The same few ideas, inside every machine.',
 			colour: 'green',
 			...posterList(
@@ -73,7 +76,9 @@
 		{#each posters as p (p.name)}
 			<article class="poster" style:--c="var(--part-{p.colour})">
 				<div>
-					<h3>{p.name}</h3>
+					<h3>
+						{#if p.href}<a class="title" href={p.href}>{p.name}</a>{:else}{p.name}{/if}
+					</h3>
 					<p class="blurb">{p.blurb}</p>
 				</div>
 				<ul>
@@ -146,10 +151,7 @@
 		</p>
 	</section>
 
-	<footer class="foot">
-		<span class="wordmark">vmechs</span>
-		<span><a href="/about">About</a> · Mechanics made easy. · © 2026</span>
-	</footer>
+	<SiteFooter />
 </div>
 
 <style>
@@ -310,6 +312,18 @@
 		text-decoration-thickness: 2px;
 		text-underline-offset: 3px;
 	}
+	/* a poster's title links to its section page, where it has one */
+	.poster a.title {
+		font-weight: inherit;
+		color: inherit;
+		text-decoration: none;
+	}
+	.poster a.title:hover {
+		text-decoration: underline;
+		text-decoration-color: var(--c);
+		text-decoration-thickness: 3px;
+		text-underline-offset: 5px;
+	}
 	.more,
 	a.more {
 		font-weight: 400;
@@ -326,8 +340,7 @@
 	h2,
 	.open h3,
 	.poster h3,
-	.pledge,
-	.wordmark {
+	.pledge {
 		font-stretch: var(--display-stretch);
 		font-weight: 650;
 		letter-spacing: -0.025em;
@@ -491,28 +504,6 @@
 		color: var(--ink-2);
 	}
 
-	.foot {
-		display: flex;
-		justify-content: space-between;
-		align-items: baseline;
-		gap: 16px;
-		margin-top: 120px;
-		padding-top: 24px;
-		border-top: 1px solid var(--line);
-		font-size: 14px;
-		color: var(--ink-3);
-	}
-	.wordmark {
-		font-size: 18px;
-		color: var(--ink-2);
-	}
-	.foot a {
-		color: var(--ink-2);
-	}
-	.foot a:hover {
-		color: var(--accent);
-	}
-
 	@media (max-width: 960px) {
 		.posters {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -550,10 +541,6 @@
 			display: none;
 		}
 		.promise {
-			margin-top: 80px;
-		}
-		.foot {
-			flex-direction: column;
 			margin-top: 80px;
 		}
 	}

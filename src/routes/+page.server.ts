@@ -11,12 +11,17 @@ export const load: PageServerLoad = () => {
 		systems,
 		// Each machine with how much of it is planned and which pages are open.
 		machines: MACHINES.map((m) => {
-			const pages = systems.filter((s) => s.group === m.id).flatMap((s) => s.lessons);
+			const own = systems.filter((s) => s.group === m.id);
+			const pages = own.flatMap((s) => s.lessons);
+			// A machine made of one system has that system's section page, once it
+			// has an open page (the car spans several systems, so it has none).
+			const section = own.length === 1 && own[0].available > 0 ? `/learn/${own[0].id}` : null;
 			return {
 				id: m.id,
 				name: m.name,
 				blurb: m.blurb,
 				colour: m.colour,
+				href: section,
 				planned: pages.length,
 				open: pages.flatMap((p) => (p.href ? [{ title: p.title, href: p.href }] : []))
 			};

@@ -57,7 +57,7 @@ src/
     content/          Article index, step helpers, the system plan and the homepage poster lists
     mechanisms/       One folder per mechanism: kinematics, 3D scene, 2D chart
     server/           Build-time-only code (article listings)
-  routes/             Home page, About, 404, sitemap and /learn/[category]/[slug]
+  routes/             Home page, About, 404, sitemap, section pages /learn/[category] and lessons /learn/[category]/[slug]
   app.css             Design tokens
 ```
 
