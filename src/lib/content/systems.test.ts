@@ -5,6 +5,7 @@ import {
 	openPages,
 	sectionGroups,
 	sectionIds,
+	sectionOf,
 	MACHINES,
 	MECHANISMS,
 	SYSTEMS,
@@ -164,6 +165,15 @@ describe('section pages (/learn/[system])', () => {
 		const groups = sectionGroups(withFamilies, rows[0]);
 		expect(groups.map((g) => g.name)).toEqual(['Second', 'First']);
 		expect(groups[0].lessons.map((l) => l.slug)).toEqual(['valvetrain']);
+	});
+
+	it("names a lesson's section and links to its page, from the lesson's category", () => {
+		expect(sectionOf('simple-machines')).toEqual({
+			name: 'Simple machines',
+			href: '/learn/simple-machines'
+		});
+		expect(sectionOf('engine')).toEqual({ name: 'Engine', href: '/learn/engine' });
+		expect(sectionOf('no-such-system')).toBeNull();
 	});
 
 	it('has a page for every system with at least one open lesson, and none for the rest', () => {

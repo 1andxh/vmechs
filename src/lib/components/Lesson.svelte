@@ -11,6 +11,7 @@
 	import { page } from '$app/state';
 	import { CycleState, setCycle } from '../animation/cycle.svelte.ts';
 	import type { LessonMeta } from '../content/lesson-meta.ts';
+	import { sectionOf } from '../content/systems.ts';
 	import { reportMistakeUrl } from '../site.ts';
 	import { setLessonParts, setLessonSteps, setSheet } from './lesson-context.ts';
 	import Subtitle from './Subtitle.svelte';
@@ -50,6 +51,8 @@
 		})
 	);
 	const reportUrl = $derived(reportMistakeUrl(page.url.pathname, title));
+	// the way back to the lesson's section page, which exists because this lesson is open
+	const section = $derived(sectionOf(meta.category));
 
 	// The "All steps" sheet is a native <dialog>: showModal() gives focus
 	// trapping, Esc to close, an inert background and focus return for free.
@@ -84,7 +87,13 @@
 <div class="lesson" data-hydrated={hydrated || undefined}>
 	<header class="bar">
 		<a href="/" class="brand">vmechs</a>
-		<h1 class="title">{title}</h1>
+		<div class="title">
+			{#if section}<a class="section" href={section.href}>{section.name}</a><span
+					class="sep"
+					aria-hidden="true">·</span
+				>{/if}
+			<h1>{title}</h1>
+		</div>
 		<button
 			type="button"
 			class="all"
@@ -194,6 +203,24 @@
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+	}
+	.title h1 {
+		display: inline;
+		margin: 0;
+		font: inherit;
+		color: inherit;
+	}
+	.section {
+		color: var(--ink-2);
+		text-decoration: none;
+	}
+	.section:hover {
+		color: var(--accent);
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+	.sep {
+		margin: 0 8px;
 	}
 	.all {
 		display: inline-flex;
@@ -376,8 +403,21 @@
 		.bar {
 			padding: 8px 12px 8px 16px;
 		}
+		/* on a phone, the section on its own small line above the title, so neither is cut short */
 		.title {
+			display: grid;
 			text-align: left;
+			line-height: 1.25;
+		}
+		.title > * {
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		.section {
+			font-size: 12px;
+		}
+		.sep {
+			display: none;
 		}
 	}
 </style>

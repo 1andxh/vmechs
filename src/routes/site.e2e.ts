@@ -229,6 +229,21 @@ test('the sitemap lists every page, and robots.txt points to it', async ({ reque
 	);
 });
 
+test("a lesson's header links back to its section page", async ({ page }) => {
+	// (the header sits inside <main>, so it isn't a banner landmark; find it by place)
+	await page.goto(WEDGE);
+	const back = page.locator('.lesson > header').getByRole('link', { name: 'Simple machines' });
+	await expect(back).toHaveAttribute('href', '/learn/simple-machines');
+	// the lesson's title is still its one top heading
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText('The wedge');
+	await back.click();
+	await expect(page).toHaveURL('/learn/simple-machines');
+	await page.goto(ARTICLE);
+	await expect(
+		page.locator('.lesson > header').getByRole('link', { name: 'Engine' })
+	).toHaveAttribute('href', '/learn/engine');
+});
+
 test('the Simple machines page teaches the six in two families, with their formulas', async ({
 	page
 }) => {

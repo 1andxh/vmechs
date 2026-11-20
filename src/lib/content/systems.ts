@@ -336,3 +336,9 @@ export function sectionGroups(
 export function sectionIds(rows: SystemRow[]): string[] {
 	return rows.filter((r) => r.available > 0).map((r) => r.id);
 }
+
+/** A lesson's section, from its category: the system's name and its section page. */
+export function sectionOf(category: string): { name: string; href: string } | null {
+	const system = SYSTEMS.find((s) => s.id === category);
+	return system ? { name: system.name, href: `/learn/${system.id}` } : null;
+}
