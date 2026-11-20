@@ -19,7 +19,7 @@
 		load={() => import('./LeverCanvas.svelte')}
 		label="The lever, in 3D. The subtitles describe each step."
 	/>
-	<dl class="readout" aria-label="The numbers">
+	<dl class="readout" aria-label="Forces and distances">
 		<div>
 			<dt class="effort">Effort</dt>
 			<dd>{n(now.effort)} N</dd>
