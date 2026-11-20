@@ -36,6 +36,11 @@ export interface LessonMeta {
 	parts?: Record<string, PartColour>;
 	/** A still of the lesson for listings, served from static/covers/. */
 	cover?: string;
+	/**
+	 * The machine's ideal mechanical advantage as a short formula, such as
+	 * "effort arm ÷ load arm", shown beside the lesson on its section page.
+	 */
+	ima?: string;
 	steps: StepMeta[];
 }
 
@@ -88,6 +93,11 @@ export function validateLessonMeta(meta: LessonMeta, today: string): string[] {
 
 	if (meta.cover !== undefined && !/^\/covers\/[\w-]+\.(jpg|png|webp)$/.test(meta.cover)) {
 		errors.push('cover must be an image in /covers/, like /covers/four-stroke-cycle.jpg');
+	}
+
+	if (meta.ima !== undefined) {
+		if (!meta.ima.trim()) errors.push('ima must be a formula, like "effort arm ÷ load arm"');
+		else if (meta.ima.length > 40) errors.push('ima must be at most 40 characters');
 	}
 
 	if (!Array.isArray(meta.simplifications)) {

@@ -3,6 +3,8 @@ import {
 	buildSystemIndex,
 	planTotals,
 	openPages,
+	sectionGroups,
+	sectionIds,
 	MACHINES,
 	MECHANISMS,
 	SYSTEMS,
@@ -127,6 +129,48 @@ describe('the catalogue: machines, their sections, and mechanisms (ADR 0014)', (
 
 	it('says where each mechanism is found', () => {
 		for (const m of MECHANISMS) expect(m.foundIn.length, m.id).toBeGreaterThan(0);
+	});
+});
+
+describe('section pages (/learn/[system])', () => {
+	it("splits a system's families so that every planned page is in exactly one", () => {
+		for (const sys of SYSTEMS.filter((s) => s.families)) {
+			const inFamilies = sys.families!.flatMap((f) => f.slugs).sort();
+			expect(inFamilies, sys.id).toEqual(sys.planned.map((p) => p.slug).sort());
+		}
+	});
+
+	it('teaches the simple machines in two families of three', () => {
+		const sm = SYSTEMS.find((s) => s.id === 'simple-machines')!;
+		expect(sm.families!.map((f) => f.slugs)).toEqual([
+			['lever', 'wheel-and-axle', 'pulley'],
+			['inclined-plane', 'wedge', 'screw']
+		]);
+	});
+
+	it('groups the pages by family, in family order, or keeps one plain list', () => {
+		const rows = buildSystemIndex(systems, [
+			{ category: 'engine', slug: 'valvetrain', title: 'Valvetrain', order: 2 }
+		]);
+		// no families: one unnamed group, in plan order
+		expect(sectionGroups(systems[0], rows[0])).toEqual([{ name: null, lessons: rows[0].lessons }]);
+		const withFamilies = {
+			...systems[0],
+			families: [
+				{ name: 'Second', slugs: ['valvetrain'] },
+				{ name: 'First', slugs: ['four-stroke-cycle'] }
+			]
+		};
+		const groups = sectionGroups(withFamilies, rows[0]);
+		expect(groups.map((g) => g.name)).toEqual(['Second', 'First']);
+		expect(groups[0].lessons.map((l) => l.slug)).toEqual(['valvetrain']);
+	});
+
+	it('has a page for every system with at least one open lesson, and none for the rest', () => {
+		const rows = buildSystemIndex(systems, [
+			{ category: 'transmission', slug: 'gears', title: 'Gears', order: 1 }
+		]);
+		expect(sectionIds(rows)).toEqual(['transmission']);
 	});
 });
 

@@ -4,6 +4,7 @@ category: simple-machines
 summary: Two inclined planes back to back, driven into the load instead of carrying it. See how a thin wedge turns a push into a much bigger force pressing things apart.
 difficulty: Beginner
 order: 5
+ima: 'length ÷ thickness'
 parts:
   wedge: gold
   wood: blue

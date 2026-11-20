@@ -121,6 +121,14 @@ describe('validateLessonMeta (the content standard, enforced)', () => {
 		);
 	});
 
+	it('takes an optional ideal mechanical advantage formula, short enough for one line', () => {
+		expect(errorsFor({ ima: 'effort arm ÷ load arm' })).toEqual([]);
+		expect(errorsFor({ ima: '  ' })).toContain(
+			'ima must be a formula, like "effort arm ÷ load arm"'
+		);
+		expect(errorsFor({ ima: 'x'.repeat(41) })).toContain('ima must be at most 40 characters');
+	});
+
 	it('takes an optional cover image, served from /covers/', () => {
 		expect(errorsFor({ cover: '/covers/four-stroke-cycle.jpg' })).toEqual([]);
 		expect(errorsFor({ cover: 'https://example.com/a.jpg' })).toContain(

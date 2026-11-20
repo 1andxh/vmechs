@@ -4,6 +4,7 @@ category: simple-machines
 summary: A slope lets a smaller push raise a heavy load, if you push it further. See what friction takes back on a real ramp.
 difficulty: Beginner
 order: 4
+ima: 'slope length ÷ height'
 parts:
   inclined plane: gold
   load: blue

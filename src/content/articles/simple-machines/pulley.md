@@ -4,6 +4,7 @@ category: simple-machines
 summary: A wheel with a rope over it turns your pull around. Add pulleys that move with the load, and the ropes share its weight.
 difficulty: Beginner
 order: 3
+ima: 'ropes holding the load'
 parts:
   fixed pulley: gold
   moving pulley: red

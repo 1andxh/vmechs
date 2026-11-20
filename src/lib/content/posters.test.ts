@@ -23,6 +23,13 @@ describe('posterList: what a homepage poster lists under its divider', () => {
 		});
 	});
 
+	it('sends "more open" to the section page when there is one', () => {
+		expect(posterList(pages(6), 6, '/learn/simple-machines').more).toEqual({
+			text: '4 more open',
+			href: '/learn/simple-machines'
+		});
+	});
+
 	it('says nothing more when every planned page is open and listed', () => {
 		expect(posterList(pages(2), 2)).toEqual({ links: pages(2), more: null });
 	});

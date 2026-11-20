@@ -13,12 +13,14 @@ const MAX_LINKS = 2;
 
 export function posterList(
 	open: PosterLink[],
-	planned: number
+	planned: number,
+	/** Where "N more open" leads: the section page, if the poster has one, or "Open now". */
+	moreHref = '#open-title'
 ): { links: PosterLink[]; more: { text: string; href: string | null } | null } {
 	const links = open.slice(0, MAX_LINKS);
-	// More open pages than fit: count them and point to "Open now", which lists them all.
+	// More open pages than fit: count them and point to a page that lists them all.
 	if (open.length > MAX_LINKS)
-		return { links, more: { text: `${open.length - MAX_LINKS} more open`, href: '#open-title' } };
+		return { links, more: { text: `${open.length - MAX_LINKS} more open`, href: moreHref } };
 	const coming = planned - open.length;
 	if (coming <= 0) return { links, more: null };
 	return {

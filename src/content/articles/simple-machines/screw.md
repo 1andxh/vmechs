@@ -4,6 +4,7 @@ category: simple-machines
 summary: An inclined plane wrapped round a rod, turned by a lever. See how a screw jack lifts the corner of a car with a push you could make with one hand.
 difficulty: Beginner
 order: 6
+ima: '2π × handle length ÷ pitch'
 parts:
   screw: gold
   load: blue

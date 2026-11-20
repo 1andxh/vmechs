@@ -4,6 +4,7 @@ category: simple-machines
 summary: A big wheel fixed to a thin axle is a lever that goes round. Pull on the wheel to lift with the axle, and see what you trade for it.
 difficulty: Beginner
 order: 2
+ima: 'wheel radius ÷ axle radius'
 parts:
   wheel: green
   axle: gold

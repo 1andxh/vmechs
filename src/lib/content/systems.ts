@@ -44,6 +44,11 @@ export interface SystemDef {
 	blurb: string;
 	/** Future lessons, by the slug their file will have. */
 	planned: { slug: string; title: string }[];
+	/**
+	 * How the section page groups the pages, if it does: named families, each
+	 * a list of planned slugs, together covering every planned page once.
+	 */
+	families?: { name: string; slugs: string[] }[];
 }
 
 export interface LessonListing {
@@ -148,6 +153,13 @@ export const SYSTEMS: SystemDef[] = [
 		group: 'simple-machines',
 		name: 'Simple machines',
 		blurb: 'The six classic building blocks inside every machine.',
+		// The series teaches them as two families (OpenStax Physics 9.3): the
+		// wheel and axle is a form of lever, and the wedge and screw are
+		// inclined planes.
+		families: [
+			{ name: 'Turn about a point', slugs: ['lever', 'wheel-and-axle', 'pulley'] },
+			{ name: 'A slope', slugs: ['inclined-plane', 'wedge', 'screw'] }
+		],
 		planned: [
 			{ slug: 'lever', title: 'The lever' },
 			{ slug: 'wheel-and-axle', title: 'The wheel and axle' },
@@ -302,4 +314,25 @@ export function openPages(
 			.filter((p) => refs.some((r) => r.category === s.id && r.slug === p.slug))
 			.map((p) => ({ title: p.title, href: `/learn/${s.id}/${p.slug}` }))
 	);
+}
+
+/**
+ * A section page's pages, grouped: by the system's families if it has them,
+ * in family order, otherwise as one unnamed list in plan order.
+ */
+export function sectionGroups(
+	system: SystemDef,
+	row: SystemRow
+): { name: string | null; lessons: SystemRow['lessons'] }[] {
+	if (!system.families) return [{ name: null, lessons: row.lessons }];
+	const bySlug = new Map(row.lessons.map((l) => [l.slug, l]));
+	return system.families.map((f) => ({
+		name: f.name,
+		lessons: f.slugs.map((s) => bySlug.get(s)!)
+	}));
+}
+
+/** The systems that get a section page: those with at least one open lesson. */
+export function sectionIds(rows: SystemRow[]): string[] {
+	return rows.filter((r) => r.available > 0).map((r) => r.id);
 }
