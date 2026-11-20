@@ -4,6 +4,7 @@ const ARTICLE = '/learn/engine/four-stroke-cycle';
 const LEVER = '/learn/simple-machines/lever';
 const WHEEL = '/learn/simple-machines/wheel-and-axle';
 const PULLEY = '/learn/simple-machines/pulley';
+const INCLINE = '/learn/simple-machines/inclined-plane';
 
 /** Collect console errors and uncaught exceptions for the whole test. */
 function trackErrors(page: Page): string[] {
@@ -69,28 +70,32 @@ test('landing: posters show every machine and the mechanisms; "Open now" feature
 	await page.goto('/');
 	// The newest page is featured first; the rest follow in a list.
 	const items = page.getByRole('region', { name: 'Open now' }).getByRole('article');
-	// Newest first, by publication date; on the same day, the later lesson first: the pulley,
-	// the wheel and axle, the lever, gears, the four-stroke engine.
-	await expect(items).toHaveCount(5);
+	// Newest first, by publication date; on the same day, the later lesson first: the inclined
+	// plane, the pulley, the wheel and axle, the lever, gears, the four-stroke engine.
+	await expect(items).toHaveCount(6);
 	await expect(items.first()).toContainText('Newest');
 	await expect(items.first()).toContainText('Simple machines · 5 steps');
-	await expect(items.first().getByRole('link', { name: 'The pulley' })).toHaveAttribute(
+	await expect(items.first().getByRole('link', { name: 'The inclined plane' })).toHaveAttribute(
+		'href',
+		INCLINE
+	);
+	await expect(items.nth(1).getByRole('link', { name: 'The pulley' })).toHaveAttribute(
 		'href',
 		PULLEY
 	);
-	await expect(items.nth(1).getByRole('link', { name: 'The wheel and axle' })).toHaveAttribute(
+	await expect(items.nth(2).getByRole('link', { name: 'The wheel and axle' })).toHaveAttribute(
 		'href',
 		WHEEL
 	);
-	await expect(items.nth(2).getByRole('link', { name: 'The lever' })).toHaveAttribute(
+	await expect(items.nth(3).getByRole('link', { name: 'The lever' })).toHaveAttribute(
 		'href',
 		LEVER
 	);
-	await expect(items.nth(3)).toContainText('Transmission · 5 steps');
-	await expect(items.nth(4)).toContainText('Engine · 4 steps');
-	await expect(items.nth(4)).not.toContainText('Newest');
+	await expect(items.nth(4)).toContainText('Transmission · 5 steps');
+	await expect(items.nth(5)).toContainText('Engine · 4 steps');
+	await expect(items.nth(5)).not.toContainText('Newest');
 	await expect(
-		items.nth(4).getByRole('link', { name: /how a four-stroke engine works/i })
+		items.nth(5).getByRole('link', { name: /how a four-stroke engine works/i })
 	).toHaveAttribute('href', ARTICLE);
 
 	// One poster per machine, plus one for the mechanisms, each listing its open pages.
@@ -102,9 +107,9 @@ test('landing: posters show every machine and the mechanisms; "Open now" feature
 	await expect(
 		poster('Car').getByRole('link', { name: /how a four-stroke engine works/i })
 	).toHaveAttribute('href', ARTICLE);
-	// three pages open: two links, then a count that leads to "Open now"
+	// four pages open: two links, then a count that leads to "Open now"
 	await expect(
-		poster('Simple machines').getByRole('link', { name: '1 more open' })
+		poster('Simple machines').getByRole('link', { name: '2 more open' })
 	).toHaveAttribute('href', '#open-title');
 	await expect(poster('Simple machines').getByRole('link', { name: 'The lever' })).toHaveAttribute(
 		'href',
@@ -201,9 +206,18 @@ test('every page tells search engines and link previews what it is', async ({ pa
 
 test('the sitemap lists every page, and robots.txt points to it', async ({ request }) => {
 	const xml = await (await request.get('/sitemap.xml')).text();
-	for (const path of ['/', '/about', ARTICLE, '/learn/transmission/gears', LEVER, WHEEL, PULLEY])
+	for (const path of [
+		'/',
+		'/about',
+		ARTICLE,
+		'/learn/transmission/gears',
+		LEVER,
+		WHEEL,
+		PULLEY,
+		INCLINE
+	])
 		expect(xml, path).toMatch(new RegExp(`<loc>https://[^<]+${path.replace(/\//g, '\\/')}</loc>`));
-	expect(xml.match(/<url>/g)).toHaveLength(7);
+	expect(xml.match(/<url>/g)).toHaveLength(8);
 	expect(await (await request.get('/robots.txt')).text()).toMatch(
 		/^Sitemap: https:\/\/.+\/sitemap\.xml$/m
 	);
@@ -330,6 +344,22 @@ test.describe('with reduced motion', () => {
 		await stepButton(page, 'Count the ropes').click();
 		await expect(value('Effort')).toHaveText('100 N');
 		await expect(value('Advantage')).toHaveText('3×');
+	});
+
+	test('the inclined plane: a 6 m ramp needs 50 N; friction raises a 100 N push to 185 N', async ({
+		page
+	}) => {
+		await page.goto(INCLINE);
+		await page.locator('.lesson[data-hydrated]').waitFor();
+		const readout = page.locator('dl[aria-label="Forces and distances"]');
+		const value = (name: string) =>
+			readout.locator('div', { hasText: name }).getByRole('definition');
+		await stepButton(page, 'Gentler still').click();
+		await expect(value('Effort')).toHaveText('50 N');
+		await expect(value('Advantage')).toHaveText('6×');
+		await stepButton(page, "Friction's share").click();
+		await expect(value('Effort')).toHaveText('185 N');
+		await expect(value('Advantage')).toHaveText('1.6×');
 	});
 
 	test('the subtitle follows the playhead when scrubbing', async ({ page }) => {
