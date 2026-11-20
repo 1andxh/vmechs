@@ -341,6 +341,33 @@ test.describe('with reduced motion', () => {
 	});
 });
 
+test('the lever sheet ends its steps with "The numbers", its answer hidden until asked for', async ({
+	page
+}) => {
+	await page.goto(LEVER);
+	await page.locator('.lesson[data-hydrated]').waitFor();
+	await page.getByRole('button', { name: 'All 5 steps' }).click();
+	const sheet = page.getByRole('dialog', { name: 'The lever' });
+	const numbers = sheet.getByRole('region', { name: 'The numbers' });
+	await expect(numbers).toContainText('Ideal mechanical advantage');
+	await expect(numbers).toContainText('2,800 N');
+	// After the last step and before the sources, measured top to top.
+	const top = async (l: ReturnType<Page['locator']>) => (await l.boundingBox())!.y;
+	const lastStep = sheet.getByRole('heading', { name: /Effort in the middle/ });
+	const sources = sheet.getByRole('region', { name: 'Sources and accuracy' });
+	expect(await top(lastStep)).toBeLessThan(await top(numbers));
+	expect(await top(numbers)).toBeLessThan(await top(sources));
+	// The practice answer is hidden from sight and from screen readers until asked for.
+	const answer = numbers.getByText(/0\.9 m from the pivot/);
+	await expect(answer).toBeHidden();
+	expect(await numbers.ariaSnapshot()).not.toContain('0.9 m from the pivot');
+	// It opens from the keyboard.
+	await numbers.getByText('Show the answer').focus();
+	await page.keyboard.press('Enter');
+	await expect(answer).toBeVisible();
+	expect(await numbers.ariaSnapshot()).toContain('0.9 m from the pivot');
+});
+
 test('clicking a step plays its range, then stops inside it', async ({ page }) => {
 	await openArticle(page);
 	await stepButton(page, 'Compression').click();

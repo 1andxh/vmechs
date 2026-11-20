@@ -19,6 +19,7 @@ Every lesson on vmechs meets this standard before it's published. Rules marked *
 - **Steps cover the whole cycle (enforced).** The first step starts at 0, each step starts where the previous one ends, and there are no gaps or overlaps.
 - **The long explanation goes in the sheet**, inside `<Step n={…}>`. Write it for the curious reader; the subtitle is for everyone.
 - **Plain words first.** Introduce the technical term after the plain description ("the very top, called top dead centre").
+- **Simple machines end with "The numbers".** After the last step, a `<Numbers>` section gives students the formulas behind the steps, one worked example and one practice question, its answer in a `<details>` so it stays hidden until asked for. Say which results are ideal (no friction) and which are real. Every number is worked out and checked against a listed source during review; the tests don't read the lesson body, so this isn't enforced. Adding or changing numbers means updating `reviewed`.
 
 ## Safety
 

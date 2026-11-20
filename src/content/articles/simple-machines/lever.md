@@ -10,13 +10,18 @@ parts:
   effort: green
 cover: /covers/lever.jpg
 published: '2026-11-19'
-reviewed: '2026-11-19'
+reviewed: '2026-11-20'
 sources:
   - title: 'College Physics 2e, section 9.5: Simple Machines'
     author: Paul Peter Urone and Roger Hinrichs
     publisher: OpenStax
     url: https://openstax.org/books/college-physics-2e/pages/9-5-simple-machines
     note: The law of the lever, mechanical advantage, and why a machine cannot put out more work than goes in.
+  - title: 'Physics, section 9.3: Simple Machines'
+    author: Paul Peter Urone and Roger Hinrichs
+    publisher: OpenStax
+    url: https://openstax.org/books/physics/pages/9-3-simple-machines
+    note: Ideal mechanical advantage from the lever's arms, efficiency as work out over work in, and why a real machine's efficiency is always below 100 percent.
   - title: Strength Training for All Body Types
     author: Lee Boyce and Melody Schoenfeld
     publisher: Human Kinetics
@@ -52,6 +57,7 @@ steps:
 	import Lesson from '#lib/components/Lesson.svelte';
 	import Step from '#lib/components/Step.svelte';
 	import LeverVisual from '#lib/mechanisms/lever/LeverVisual.svelte';
+	import Numbers from '#lib/components/Numbers.svelte';
 </script>
 
 <Lesson meta={metadata} period={1800} angleLabel="Push" visual={LeverVisual}>
@@ -104,5 +110,45 @@ moves three times as far, and three times as fast, as the point where the muscle
 works the same way.
 
 </Step>
+
+<Numbers>
+
+### Formulas
+
+<p class="formula">Ideal mechanical advantage (IMA) = effort arm ÷ load arm</p>
+<p class="formula">Mechanical advantage (MA) = load ÷ effort</p>
+<p class="formula">Work = force × distance moved</p>
+<p class="formula">Efficiency = work out ÷ work in</p>
+
+The ideal advantage comes from the lever's shape alone; the mechanical advantage comes from the forces
+you actually measure. An ideal lever, with a frictionless pivot and a bar that never bends, loses no
+work, so work out equals work in and its efficiency is 1, or 100%. A real lever loses a little work
+to friction at the pivot and to the bar flexing, so its efficiency is always below 100%.
+
+The two advantages are linked. Work out ÷ work in = (load × load distance) ÷ (effort × effort
+distance), and the distances are in the same ratio as the arms, so **efficiency = MA ÷ IMA**.
+
+### A worked example
+
+A crowbar 1.5 m long rests on its bend, 0.10 m from the claw. The load arm is 0.10 m, and the
+effort arm is the rest of the bar, 1.40 m.
+
+- IMA = 1.40 m ÷ 0.10 m = **14**.
+- Push the handle with 200 N, and an ideal crowbar pulls on the nail with 200 N × 14 = **2,800 N**.
+- The handle moves 14 times as far as the claw: lift it 28 cm and the nail rises 2 cm. Work in is
+  200 N × 0.28 m = 56 J, and work out is 2,800 N × 0.02 m = 56 J, as it must be with no losses.
+
+### Try it
+
+A child weighing 300 N sits on a seesaw, 1.2 m from the pivot. An adult weighing 400 N sits on the
+other side of the pivot. How far from the pivot must the adult sit for the seesaw to balance?
+
+<details>
+<summary>Show the answer</summary>
+<p>The turning effects must match: 300 N × 1.2 m = 400 N × distance. So the distance is 360 ÷ 400 =
+0.9 m. The adult sits 0.9 m from the pivot, nearer than the child, because they push down harder.</p>
+</details>
+
+</Numbers>
 
 </Lesson>
