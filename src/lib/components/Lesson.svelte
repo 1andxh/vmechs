@@ -57,10 +57,29 @@
 	// The "All steps" sheet is a native <dialog>: showModal() gives focus
 	// trapping, Esc to close, an inert background and focus return for free.
 	let sheet: HTMLDialogElement;
+	let sheetButton: HTMLButtonElement;
 	let sheetOpen = $state(false);
+	// Whether the "All steps" button had focus as the sheet opened (opened with
+	// the keyboard), so focus should go back to it. Safari doesn't focus a button
+	// on mouse click, so a mouse-opened sheet there has nothing to go back to.
+	let returnFocus = false;
 	function openSheet() {
+		returnFocus = document.activeElement === sheetButton;
 		sheet.showModal();
 		sheetOpen = true;
+	}
+	// The browser puts focus back on the button as the dialog closes. WebKit,
+	// under load, sometimes does it before the page behind the dialog is usable
+	// again, so the focus doesn't land and ends on the body (a probe caught it in
+	// 4 of 40 runs). By the time the close event fires the page is usable, so if
+	// focus didn't land, put it back ourselves. At that moment it may still sit in
+	// the hidden sheet (the browser moves it to the body a little later), so that
+	// counts as not landed too.
+	function onSheetClose() {
+		sheetOpen = false;
+		const active = document.activeElement;
+		const lost = !active || active === document.body || sheet.contains(active);
+		if (returnFocus && lost) sheetButton.focus();
 	}
 	function closeSheet() {
 		sheet.close();
@@ -97,6 +116,7 @@
 		<button
 			type="button"
 			class="all"
+			bind:this={sheetButton}
 			disabled={!hydrated}
 			aria-haspopup="dialog"
 			aria-expanded={sheetOpen}
@@ -118,7 +138,7 @@
 	bind:this={sheet}
 	class="sheet"
 	aria-labelledby="sheet-title"
-	onclose={() => (sheetOpen = false)}
+	onclose={onSheetClose}
 	onclick={onSheetClick}
 >
 	<div class="sheet-inner">

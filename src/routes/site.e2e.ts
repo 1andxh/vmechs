@@ -489,6 +489,31 @@ test.describe('with reduced motion', () => {
 		await expect(open).toHaveAttribute('aria-expanded', 'false');
 	});
 
+	// WebKit, under load, sometimes returns focus before the page behind the dialog is usable
+	// again; the focus doesn't land and ends on the body (about 1 run in 10, seen in a probe on
+	// 2026-11-20). Recreate that end state every time: the header is inert as the dialog closes
+	// and stops being inert as its close event begins.
+	test("focus goes back to the sheet's button even when the browser's own return fails", async ({
+		page
+	}) => {
+		await openArticle(page);
+		const open = page.getByRole('button', { name: 'All 4 steps' });
+		await open.focus();
+		await page.keyboard.press('Enter');
+		await expect(page.getByRole('dialog')).toBeVisible();
+		await page.evaluate(() => {
+			const header = document.querySelector('.lesson > header')!;
+			header.setAttribute('inert', '');
+			addEventListener('close', () => header.removeAttribute('inert'), {
+				capture: true,
+				once: true
+			});
+		});
+		await page.keyboard.press('Escape');
+		await expect(page.getByRole('dialog')).toBeHidden();
+		await expect(open).toBeFocused();
+	});
+
 	test('"Watch this step" closes the sheet and plays that step on stage', async ({ page }) => {
 		await openArticle(page);
 		await page.getByRole('button', { name: 'All 4 steps' }).click();
