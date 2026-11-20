@@ -29,7 +29,9 @@ export const load: PageServerLoad = () => {
 			return { name: m.name, href: page?.href ?? null };
 		}),
 		// The pages you can open today, newest first, for "Open now" (it features
-		// the first). Pages published the same day stay in system order.
+		// the first). On the same day, the later page in the plan comes first, so
+		// the one just added is featured: the list is reversed from plan order,
+		// and the sort is stable, so ties keep that reversed order.
 		open: SYSTEMS.flatMap((system) =>
 			articles
 				.filter((a) => a.category === system.id)
@@ -42,6 +44,8 @@ export const load: PageServerLoad = () => {
 					steps: a.steps.length,
 					cover: a.cover ?? null
 				}))
-		).sort((a, b) => b.published.localeCompare(a.published))
+		)
+			.reverse()
+			.sort((a, b) => b.published.localeCompare(a.published))
 	};
 };

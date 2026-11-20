@@ -69,18 +69,18 @@ test('landing: posters show every machine and the mechanisms; "Open now" feature
 	await page.goto('/');
 	// The newest page is featured first; the rest follow in a list.
 	const items = page.getByRole('region', { name: 'Open now' }).getByRole('article');
-	// Newest first, by publication date (the same day keeps lesson order): the wheel and axle,
-	// the pulley, the lever, gears, the four-stroke engine.
+	// Newest first, by publication date; on the same day, the later lesson first: the pulley,
+	// the wheel and axle, the lever, gears, the four-stroke engine.
 	await expect(items).toHaveCount(5);
 	await expect(items.first()).toContainText('Newest');
 	await expect(items.first()).toContainText('Simple machines · 5 steps');
-	await expect(items.first().getByRole('link', { name: 'The wheel and axle' })).toHaveAttribute(
-		'href',
-		WHEEL
-	);
-	await expect(items.nth(1).getByRole('link', { name: 'The pulley' })).toHaveAttribute(
+	await expect(items.first().getByRole('link', { name: 'The pulley' })).toHaveAttribute(
 		'href',
 		PULLEY
+	);
+	await expect(items.nth(1).getByRole('link', { name: 'The wheel and axle' })).toHaveAttribute(
+		'href',
+		WHEEL
 	);
 	await expect(items.nth(2).getByRole('link', { name: 'The lever' })).toHaveAttribute(
 		'href',
