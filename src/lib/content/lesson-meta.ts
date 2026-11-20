@@ -86,9 +86,17 @@ export function validateLessonMeta(meta: LessonMeta, today: string): string[] {
 	}
 
 	const colours = Object.keys(PARTS);
+	// a colour means one part (ADR 0015), so two parts can't share one
+	const usedBy = new Map<string, string>();
 	for (const [part, colour] of Object.entries(meta.parts ?? {})) {
 		if (!colours.includes(colour))
 			errors.push(`part "${part}" has colour "${colour}"; use one of ${colours.join(', ')}`);
+		const first = usedBy.get(colour);
+		if (first)
+			errors.push(
+				`colour "${colour}" is used for both "${first}" and "${part}"; give each part its own colour`
+			);
+		else usedBy.set(colour, part);
 	}
 
 	if (meta.cover !== undefined && !/^\/covers\/[\w-]+\.(jpg|png|webp)$/.test(meta.cover)) {

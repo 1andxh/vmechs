@@ -129,6 +129,15 @@ describe('validateLessonMeta (the content standard, enforced)', () => {
 		expect(errorsFor({ ima: 'x'.repeat(41) })).toContain('ima must be at most 40 characters');
 	});
 
+	it('uses each colour for one part only, so a colour always means the same part', () => {
+		expect(errorsFor({ parts: { ramp: 'gold', load: 'blue' } })).toEqual([]);
+		expect(
+			errorsFor({ parts: { 'inclined plane': 'gold', ramp: 'gold', load: 'blue' } })
+		).toContain(
+			'colour "gold" is used for both "inclined plane" and "ramp"; give each part its own colour'
+		);
+	});
+
 	it('takes an optional cover image, served from /covers/', () => {
 		expect(errorsFor({ cover: '/covers/four-stroke-cycle.jpg' })).toEqual([]);
 		expect(errorsFor({ cover: 'https://example.com/a.jpg' })).toContain(
